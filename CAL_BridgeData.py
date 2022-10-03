@@ -11,7 +11,7 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import datetime as dt
 
 import io
@@ -1179,7 +1179,7 @@ abmt_rc_2022 = abmt_rc.iloc[38616:45063, :]
 #def createdates (abmt_rc_yr, ): 
     
 # not sure if this is the approach for making all the abmt_rc_dates_.... but the idea I have is to make the numbers associated with each filename_16, ... filename_22 into a list or dict and then say
-"""for filename_17 thru filename_22 abmt_rc_dates_XXXX where the Xs are a stand-in for the different years-abmt_rc_dates_XXXX gets the correct year added to the end of the which is then set equal to np.arange(datetime(XXXX,1,1), datetime(XXXX,12,31), timedelta(hours=(525600/60)/filename_XX XX is a two digit year)) 
+"""for filename_16 thru filename_22 abmt_rc_dates_XXXX where the Xs are a stand-in for the different years-abmt_rc_dates_XXXX gets the correct year added to the end of the which is then set equal to np.arange(datetime(XXXX,1,1), datetime(XXXX,12,31), timedelta(hours=(525600/60)/filename_XX XX is a two digit year)) 
 well, I'm onto something here- need to make the variable name into an iterable that can have its string manipulated by adding the four digit year onto the end of it and then dividing out the number of the observations into the number of hours between the observations of the different bridges which will then produce the seven sets of dates for each year which can then be made into the different date ranges for each year that can then be made into the datetime object that is made to be set as an axis on the abmt_rc_XXXX 7 times (for the seven different abmt_rc_XXXX slices of the overall abmt_rc variable) )"""
 #abmt_rc_dates = []
 
@@ -1199,7 +1199,7 @@ abmt_rc_2016 = abmt_rc_2016.set_axis(abmt_rc_dates_2016, inplace=False)
 
 # df.index.to_pydatetime() 
 # OR df['date'] = df['timestamp'].apply(timestamp_to_datetime) 
-abmt_rc_2016.index = abmt_rc_2016.index.to_pydatetime()
+#abmt_rc_2016.index = abmt_rc_2016.index.to_pydatetime()
 
 
 plt.scatter(abmt_rc_2016.index, abmt_rc_2016.CS1)
@@ -1207,12 +1207,29 @@ plt.title('Reinforced Concrete abutments (abmt_rc) 2016')
 plt.xlabel('Date')
 plt.ylabel('CS1')
 
+
+# df['date_ordinal'] = pd.to_datetime(df['date']).apply(lambda date: date.toordinal())
+
+
+
+#ax = plt.gca()
+#xticks = ax.get_xticks()
+#xticks_dates = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') for x in xticks]
+#ax.set_xticklabels(xticks_dates)
+
+# tips = sns.load_dataset("tips")
+#sns.regplot(x=abmt_rc_2016.index, y="CS1", data=abmt_rc_2016)
+
 #check dtype of index in abmt_rc_2016
 datatypes = abmt_rc_2016.dtypes.index
 
 # a, b = np.polyfit(date.astype(np.int64), ser2, 1)
 
-m, b = np.polyfit(abmt_rc_2016.index.astype(np.int64), abmt_rc_2016.CS1, 1)
+#m2016, b2016 = np.polyfit(abmt_rc_2016.index.astype(np.int64), abmt_rc_2016.CS1, 1)
+
+#Y = -1.0900525194435487e-18 * x + 2.543149493138786
+
+#plt.scatter(abmt_rc_2016.index, abmt_rc_2016.CS1)
 
 """ Now make the datetime64 conversion? """
 
@@ -1276,7 +1293,7 @@ plt.scatter(abmt_rc_2020.index, abmt_rc_2020.CS1)
 # 2021
 # 09/11/2022 this is where the length mismatch of expected 6451 elements vs. 6450 occurs- could be that the length of each period needs to be recomputed!!!
 # !!!
-abmt_rc_dates_2021 = np.arange(datetime(2021,1,1), datetime(2022,1,1), timedelta(hours=1.358139534883721)).astype(datetime)
+abmt_rc_dates_2021 = np.arange(datetime(2021,1,1), datetime(2022,1,1), timedelta(hours=1.357929003255309)).astype(datetime)
 
 # remove last entry
 # *abmt_rc_dates_2021,_ = abmt_rc_dates_2021
@@ -1292,7 +1309,7 @@ plt.scatter(abmt_rc_2021.index, abmt_rc_2021.CS1)
 abmt_rc_dates_2022 = np.arange(datetime(2022,1,1), datetime(2023,1,1), timedelta(hours=1.358771521637971)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2022,_ = abmt_rc_dates_2022
+#*abmt_rc_dates_2022,_ = abmt_rc_dates_2022
 
 abmt_rc_2022 = abmt_rc_2022.set_axis(abmt_rc_dates_2022, inplace=False)
 
@@ -1304,11 +1321,103 @@ plt.scatter(abmt_rc_2022.index, abmt_rc_2022.CS1)
 
 df_regr_abmt_rc =pd.concat([abmt_rc_2016, abmt_rc_2017, abmt_rc_2018, abmt_rc_2019, abmt_rc_2020, abmt_rc_2021, abmt_rc_2022,], axis=0) 
 
+# Begin Regression of the concatenated set called df_regr_abmt_rc:
+
+# !!!
+
+df_regr_abmt_rc['date_ordinal'] = pd.to_datetime(df_regr_abmt_rc.index.to_series()).apply(lambda dt: dt.toordinal())
+
+ax = sns.regplot(
+    data=df_regr_abmt_rc,
+    x='date_ordinal',
+    y='CS1',
+    scatter_kws={"color": "blue"}, line_kws={"color": "red"}
+)
+
+ax.set_xlim(df_regr_abmt_rc['date_ordinal'].min() - 100, df_regr_abmt_rc['date_ordinal'].max() + 100)
+ax.set_ylim(0, df_regr_abmt_rc['CS1'].max() + .25)
+
+ax.set_xlabel('Date')
+new_labels = [date.fromordinal(int(item)) for item in ax.get_xticks()]
+ax.set_xticklabels(new_labels)
+
+
+
+
+
+"""sns.lmplot(
+    data=df_regr_abmt_rc,
+    x='date_ordinal',
+    y='CS1',
+    scatter_kws={"color": "blue"}, line_kws={"color": "red"})
+
+
+
+seaborn.residplot(data=None, *, x=None, y=None, x_partial=None, y_partial=None, lowess=False, order=1, robust=False, dropna=True, label=None, color=None, scatter_kws=None, line_kws=None, ax=None)
+"""
+    
+
+ax = df1.plot()
+df2.plot(ax=ax)
+
+fig, ax = plt.subplots()
+
+
+
+plt.title('Reinforced Concrete abutments (abmt_rc) 2016 to 2022, California')
+plt.xlabel('Date')
+plt.ylabel('CS1')
+ax = plt.scatter(df_regr_abmt_rc.index, df_regr_abmt_rc.CS1)
+
+
+slope, intercept = np.polyfit(df_regr_abmt_rc.index.astype(np.int64), df_regr_abmt_rc.CS1, 1)
+
+# slope = -7.84080793412465e-20
+# intercept = 1.0601339128916805
+
+
+
+#fig, ax = plt.subplots()
+# plot the line 
+#a = pd.DataFrame({'a': [3,2,6,4]}, index = pd.date_range(dt(2019,1,1), periods = 4))
+#plot = plt.plot_date(x=a.reset_index()['index'], y=a['a'], fmt="-")
+
+# try to add the scatterplot
+#b = pd.DataFrame({'b': [5, 2]}, index = pd.date_range(dt(2019,1,1), periods = 2))
+#plot = plt.scatter(x=b.reset_index()['index'], y=b['b'], c='r')
+#plt.show()
+
+
+fig, ax = plt.subplots()
+
+plot = plt.plot_date(x=a.reset_index()['index'], y=a['a'], fmt="-")
+
+b = pd.DataFrame({'b': [5, 2]}, index = pd.date_range(dt(2019,1,1), periods = 2))
+plot = plt.scatter(x=b.reset_index()['index'], y=b['b'], c='r')
+plt.show()
+
+
+abline_values = [slope * i + intercept for i in df_regr_abmt_rc.index]
+
+plt.plot(df_regr_abmt_rc.index.astype(np.int64), df_regr_abmt_rc.CS1, '--')
+plt.plot(df_regr_abmt_rc.index.astype(np.int64), abline_values, 'b')
+plt.title(slope)
+plt.show() 
+
+ax.axline((0, -7.84081e-20), slope=1.06013, color='C0', label='best fit')
+# ax.set_xlim(0, 1)
+ax.set_ylim(0, 1) 
+ax.legend()
+
+
+
 
 # Switching bridge elements here
 
 
 # Remove the entries in the df for CS1 that are 0 and have already progressed through CS1 in entirety (meaning the element will not experience CS1 again unless an outside influence is applied to it such as replacement or repair).  
+
+
 
 topFlg_rc = topFlg_rc.loc[~((topFlg_rc['CS1'] == 0.0) & (topFlg_rc['CS2'] + topFlg_rc['CS3'] + topFlg_rc['CS4'] == 1.0)),:]
 
