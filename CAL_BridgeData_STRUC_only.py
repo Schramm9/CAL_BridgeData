@@ -11,7 +11,7 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import datetime as dt
 
 import io
@@ -328,12 +328,23 @@ df19_20_22_21 = pd.merge(df2019, df20_22_21, on=['STRUCNUM'])
 
 # Change of suffixes post merge
 
-df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': 'EPN_19', 'TOTALQTY':'TOTALQTY_19', 'CS1':'CS1_19', 'CS2':'CS2_19', 'CS3':'CS3_19', 'CS4':'CS4_19',}, inplace = True)
+    df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': 'EPN_19', 'TOTALQTY':'TOTALQTY_19', 'CS1':'CS1_19', 'CS2':'CS2_19', 'CS3':'CS3_19', 'CS4':'CS4_19',}, inplace = True)
+
+# Line above is last to merge successfully without export.  
+
+# df2018_key = df2018.Colname
+
+# df19_20_22_21.drop_duplicates(subset ='STRUCNUM', keep = False, inplace = True)
+
 
 
 # Merge of df2018 into the already merged years  2019 2020 2021 and 2022
 
 df18_19_20_22_21 = pd.merge(df2018, df19_20_22_21, on=['STRUCNUM'])
+
+#export above df18_19_20_22_21 to csv to save memory 
+
+#df18_19_20_22_21.to_csv("df3.csv",index_label=False)
 
 # Post merge the length of df18_19_20_22_21 is 64628 lines long
 
@@ -1014,7 +1025,7 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
 
     # End Wearing Surfaces
     
-    # End Elements
+# End Elements
     
 # Rationale for the replacement of data for deck_rc is that the subset of data will consist of all bridges that have observations in all years AND at least one EN observation in one year- thus replacing the the EN observations for years where no data is present but at least one observation is present in at least one year for a bridge.      
 
@@ -1080,7 +1091,8 @@ for item in items:
 print(counts.get('a'))
 # Returns: 3"""
 
-# count all the occurrences of the different filenames in the list and palce them in a dict called counts.
+# count all the occurrences of the different filenames in the list and place them in a dict called counts.
+# The counts covered below are for the filenames in the filename column of the df called abmt_rc.  
 filenames = abmt_rc['filename'].tolist()
 
 counts = {}
@@ -1116,42 +1128,46 @@ filename_22 = counts.get('2022CA_ElementData.xml')
 # Slicing out the different years from the dataframe for all 7 years:
 abmt_rc_2016 = abmt_rc.iloc[0:6411, :]
 
+# !!!
+# MVP II Replace the data of the smaller year sets i.e. the lists of STRUCNUM smaller than all the rest of the observed years.  
+
 # The line of code below is to make the order of the CS1 entries in ascending order so as to make the line of best fit slope upwards as I have hypothesized it would.  The rationale for this approach is to say that the bridges can be observed/inspected in the field in any order we wish
 
-abmt_rc_2016 = abmt_rc_2016.sort_values(by=['CS1'], ascending=True) 
+# abmt_rc_2016 = abmt_rc_2016.sort_values(by=['CS1'], ascending=True) 
 
 
 abmt_rc_2017 = abmt_rc.iloc[6411:12830, :]
 
-abmt_rc_2017 = abmt_rc_2017.sort_values(by=['CS1'], ascending=True) 
+# abmt_rc_2017 = abmt_rc_2017.sort_values(by=['CS1'], ascending=True) 
 
 
 abmt_rc_2018 = abmt_rc.iloc[12830:19271, :]
 
-abmt_rc_2018 = abmt_rc_2018.sort_values(by=['CS1'], ascending=True) 
+# abmt_rc_2018 = abmt_rc_2018.sort_values(by=['CS1'], ascending=True) 
 
 
 abmt_rc_2019 = abmt_rc.iloc[19271:25715, :]
 
-abmt_rc_2019 = abmt_rc_2019.sort_values(by=['CS1'], ascending=True) 
+# abmt_rc_2019 = abmt_rc_2019.sort_values(by=['CS1'], ascending=True) 
 
 
 abmt_rc_2020 = abmt_rc.iloc[25715:32165, :]
 
-abmt_rc_2020 = abmt_rc_2020.sort_values(by=['CS1'], ascending=True) 
+# abmt_rc_2020 = abmt_rc_2020.sort_values(by=['CS1'], ascending=True) 
 
 
 abmt_rc_2021 = abmt_rc.iloc[32165:38616, :]
 
-abmt_rc_2021 = abmt_rc_2021.sort_values(by=['CS1'], ascending=True)
+# abmt_rc_2021 = abmt_rc_2021.sort_values(by=['CS1'], ascending=True)
 
 
 abmt_rc_2022 = abmt_rc.iloc[38616:45063, :]
 
-abmt_rc_2022 = abmt_rc_2022.sort_values(by=['CS1'], ascending=True)
+# abmt_rc_2022 = abmt_rc_2022.sort_values(by=['CS1'], ascending=True)
 
-
+# !!!
 # Make the first year (2016) ordered from lowest CS1 to highest CS1 - NOT ordered from lowest to highest STRUCNUM as they are currently. 
+# !!!
 
 # I'm not happy about this approach that I'm taking below- I just want to state that outright- There are probably features of the pd.date_range method that I am not aware of yet that may take the problem I am faced with (leap year basically causing the freq to leave the first several observations of year 2021 in 2020, i.e. the observations for the bridges with STRUCNUM = 000000000000008 or 000000000000019 for example which are the first 2 bridges observed each year because the bridges are in ascending numerical order- are corresponding to dates like 2020-12-30 00:00:00.0000 and 2020-12-31 00:00:00.0000) The use of the DateOffset or dt.is_leap_year to deal with this problem would be less work and more efficient but I'm trying to get this application up and working at this point now just shy of a year since my Career Lab!
 
@@ -1163,6 +1179,23 @@ abmt_rc_2022 = abmt_rc_2022.sort_values(by=['CS1'], ascending=True)
 # 2016
 # Make Numpy arange as a datetime to make a range of dates for 2016
 
+# MVP II:
+# loop to make the dates
+
+
+
+
+
+
+#def createdates (abmt_rc_yr, ): 
+    
+# not sure if this is the approach for making all the abmt_rc_dates_.... but the idea I have is to make the numbers associated with each filename_16, ... filename_22 into a list or dict and then say
+"""for filename_16 thru filename_22 abmt_rc_dates_XXXX where the Xs are a stand-in for the different years-abmt_rc_dates_XXXX gets the correct year added to the end of the which is then set equal to np.arange(datetime(XXXX,1,1), datetime(XXXX,12,31), timedelta(hours=(525600/60)/filename_XX XX is a two digit year)) 
+well, I'm onto something here- need to make the variable name into an iterable that can have its string manipulated by adding the four digit year onto the end of it and then dividing out the number of the observations into the number of hours between the observations of the different bridges which will then produce the seven sets of dates for each year which can then be made into the different date ranges for each year that can then be made into the datetime object that is made to be set as an axis on the abmt_rc_XXXX 7 times (for the seven different abmt_rc_XXXX slices of the overall abmt_rc variable) )"""
+#abmt_rc_dates = []
+
+#for 
+
 # 
 abmt_rc_dates_2016 = np.arange(datetime(2016,1,1), datetime(2016,12,31), timedelta(hours=1.366401497426299)).astype(datetime)
 
@@ -1173,15 +1206,48 @@ abmt_rc_dates_2016 = np.arange(datetime(2016,1,1), datetime(2016,12,31), timedel
 abmt_rc_2016 = abmt_rc_2016.set_axis(abmt_rc_dates_2016, inplace=False)
 
 # Plot the data, just to see what it looks like
-plt.scatter(abmt_rc_2016.index, abmt_rc_2016.CS1)
 
+
+# df.index.to_pydatetime() 
+# OR df['date'] = df['timestamp'].apply(timestamp_to_datetime) 
+#abmt_rc_2016.index = abmt_rc_2016.index.to_pydatetime()
+
+
+plt.scatter(abmt_rc_2016.index, abmt_rc_2016.CS1)
+plt.title('Reinforced Concrete abutments (abmt_rc) 2016')
+plt.xlabel('Date')
+plt.ylabel('CS1')
+
+
+# df['date_ordinal'] = pd.to_datetime(df['date']).apply(lambda date: date.toordinal())
+
+
+
+#ax = plt.gca()
+#xticks = ax.get_xticks()
+#xticks_dates = [datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S') for x in xticks]
+#ax.set_xticklabels(xticks_dates)
+
+# tips = sns.load_dataset("tips")
+#sns.regplot(x=abmt_rc_2016.index, y="CS1", data=abmt_rc_2016)
+
+#check dtype of index in abmt_rc_2016
+datatypes = abmt_rc_2016.dtypes.index
+
+# a, b = np.polyfit(date.astype(np.int64), ser2, 1)
+
+#m2016, b2016 = np.polyfit(abmt_rc_2016.index.astype(np.int64), abmt_rc_2016.CS1, 1)
+
+#Y = -1.0900525194435487e-18 * x + 2.543149493138786
+
+#plt.scatter(abmt_rc_2016.index, abmt_rc_2016.CS1)
 
 """ Now make the datetime64 conversion? """
 
 # 2017
 abmt_rc_dates_2017 = np.arange(datetime(2017,1,1), datetime(2018,1,1), timedelta(hours=1.364698551176196)).astype(datetime)
 
-# remove last entry
+# remove last entry- once this is done the variable becomes a list not an array of object anymore!
 *abmt_rc_dates_2017,_ = abmt_rc_dates_2017
 
 abmt_rc_2017 = abmt_rc_2017.set_axis(abmt_rc_dates_2017, inplace=False)
@@ -1195,7 +1261,7 @@ plt.scatter(abmt_rc_2017.index, abmt_rc_2017.CS1)
 abmt_rc_dates_2018 = np.arange(datetime(2018,1,1), datetime(2019,1,1), timedelta(hours=1.36003726129483)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2018,_ = abmt_rc_dates_2018
+# *abmt_rc_dates_2018,_ = abmt_rc_dates_2018
 
 abmt_rc_2018 = abmt_rc_2018.set_axis(abmt_rc_dates_2018, inplace=False)
 
@@ -1205,10 +1271,10 @@ plt.scatter(abmt_rc_2018.index, abmt_rc_2018.CS1)
 
 # 2019
 
-abmt_rc_dates_2019 = np.arange(datetime(2019,1,1), datetime(2020,1,1), timedelta(minutes=1.359404096834264)).astype(datetime)
+abmt_rc_dates_2019 = np.arange(datetime(2019,1,1), datetime(2020,1,1), timedelta(hours=1.359404096834264)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2019,_ = abmt_rc_dates_2019
+# abmt_rc_dates_2019,_ = abmt_rc_dates_2019
 
 abmt_rc_2019 = abmt_rc_2019.set_axis(abmt_rc_dates_2019, inplace=False)
 
@@ -1224,7 +1290,7 @@ plt.scatter(abmt_rc_2019.index, abmt_rc_2019.CS1)
 abmt_rc_dates_2020 = np.arange(datetime(2020,1,1), datetime(2020,12,31), timedelta(hours=1.358139534883721)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2020,_ = abmt_rc_dates_2020
+# *abmt_rc_dates_2020,_ = abmt_rc_dates_2020
 
 abmt_rc_2020 = abmt_rc_2020.set_axis(abmt_rc_dates_2020, inplace=False)
 
@@ -1236,16 +1302,17 @@ plt.scatter(abmt_rc_2020.index, abmt_rc_2020.CS1)
 # 2021 1st bridge = 4825, last bridge = 10053
 
 # 2021
-
-abmt_rc_dates_2021 = np.arange(datetime(2021,1,1), datetime(2022,1,1), timedelta(hours=1.358139534883721)).astype(datetime)
+# 09/11/2022 this is where the length mismatch of expected 6451 elements vs. 6450 occurs- could be that the length of each period needs to be recomputed!!!
+# !!!
+abmt_rc_dates_2021 = np.arange(datetime(2021,1,1), datetime(2022,1,1), timedelta(hours=1.357929003255309)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2021,_ = abmt_rc_dates_2021
+# *abmt_rc_dates_2021,_ = abmt_rc_dates_2021
 
 abmt_rc_2021 = abmt_rc_2021.set_axis(abmt_rc_dates_2021, inplace=False)
 
 plt.scatter(abmt_rc_2021.index, abmt_rc_2021.CS1)
-
+# !!!
 # 2022 1st bridge = 4825, last bridge = 10053
 
 # 2022
@@ -1253,7 +1320,7 @@ plt.scatter(abmt_rc_2021.index, abmt_rc_2021.CS1)
 abmt_rc_dates_2022 = np.arange(datetime(2022,1,1), datetime(2023,1,1), timedelta(hours=1.358771521637971)).astype(datetime)
 
 # remove last entry
-*abmt_rc_dates_2022,_ = abmt_rc_dates_2022
+#*abmt_rc_dates_2022,_ = abmt_rc_dates_2022
 
 abmt_rc_2022 = abmt_rc_2022.set_axis(abmt_rc_dates_2022, inplace=False)
 
@@ -1265,11 +1332,123 @@ plt.scatter(abmt_rc_2022.index, abmt_rc_2022.CS1)
 
 df_regr_abmt_rc =pd.concat([abmt_rc_2016, abmt_rc_2017, abmt_rc_2018, abmt_rc_2019, abmt_rc_2020, abmt_rc_2021, abmt_rc_2022,], axis=0) 
 
+# Begin Regression of the concatenated set called df_regr_abmt_rc:
+
+# !!!
+
+df_regr_abmt_rc['date_ordinal'] = pd.to_datetime(df_regr_abmt_rc.index.to_series()).apply(lambda dt: dt.toordinal())
+
+ax = sns.regplot(
+    data=df_regr_abmt_rc,
+    x='date_ordinal',
+    y='CS1',
+    scatter_kws={"color": "blue"}, line_kws={"color": "red"}
+)
+# Make the plot readable
+ax.set_xlim(df_regr_abmt_rc['date_ordinal'].min() - 100, df_regr_abmt_rc['date_ordinal'].max() + 100)
+ax.set_ylim(0, df_regr_abmt_rc['CS1'].max() + .25)
+
+ax.set_xlabel('Date')
+new_labels = [date.fromordinal(int(item)) for item in ax.get_xticks()]
+ax.set_xticklabels(new_labels)
+plt.xticks(rotation=45)
+
+# !!!
+# Look out here: Make residuals plot
+
+# draw residplot
+sns.residplot(data=df_regr_abmt_rc,
+x='date_ordinal',
+y='CS1')
+
+ax.set_xlabel('Date')
+new_labels = [date.fromordinal(int(item)) for item in ax.get_xticks()]
+ax.set_xticklabels(new_labels)
+plt.xticks(rotation=45)
+#!!!
+
+# Good to the line above!! (10/09/2022)
+
+# Try to replace missing data from years missing ENs covered in other years
+# 
+
+
+
+
+
+"""sns.lmplot(
+    data=df_regr_abmt_rc,
+    x='date_ordinal',
+    y='CS1',
+    scatter_kws={"color": "blue"}, line_kws={"color": "red"})
+
+
+
+seaborn.residplot(data=None, *, x=None, y=None, x_partial=None, y_partial=None, lowess=False, order=1, robust=False, dropna=True, label=None, color=None, scatter_kws=None, line_kws=None, ax=None)
+"""
+    
+
+ax = df1.plot()
+df2.plot(ax=ax)
+
+fig, ax = plt.subplots()
+
+
+
+plt.title('Reinforced Concrete abutments (abmt_rc) 2016 to 2022, California')
+plt.xlabel('Date')
+plt.ylabel('CS1')
+ax = plt.scatter(df_regr_abmt_rc.index, df_regr_abmt_rc.CS1)
+
+
+slope, intercept = np.polyfit(df_regr_abmt_rc.index.astype(np.int64), df_regr_abmt_rc.CS1, 1)
+
+# slope = -7.84080793412465e-20
+# intercept = 1.0601339128916805
+
+
+
+#fig, ax = plt.subplots()
+# plot the line 
+#a = pd.DataFrame({'a': [3,2,6,4]}, index = pd.date_range(dt(2019,1,1), periods = 4))
+#plot = plt.plot_date(x=a.reset_index()['index'], y=a['a'], fmt="-")
+
+# try to add the scatterplot
+#b = pd.DataFrame({'b': [5, 2]}, index = pd.date_range(dt(2019,1,1), periods = 2))
+#plot = plt.scatter(x=b.reset_index()['index'], y=b['b'], c='r')
+#plt.show()
+
+
+fig, ax = plt.subplots()
+
+plot = plt.plot_date(x=a.reset_index()['index'], y=a['a'], fmt="-")
+
+b = pd.DataFrame({'b': [5, 2]}, index = pd.date_range(dt(2019,1,1), periods = 2))
+plot = plt.scatter(x=b.reset_index()['index'], y=b['b'], c='r')
+plt.show()
+
+
+abline_values = [slope * i + intercept for i in df_regr_abmt_rc.index]
+
+plt.plot(df_regr_abmt_rc.index.astype(np.int64), df_regr_abmt_rc.CS1, '--')
+plt.plot(df_regr_abmt_rc.index.astype(np.int64), abline_values, 'b')
+plt.title(slope)
+plt.show() 
+
+ax.axline((0, -7.84081e-20), slope=1.06013, color='C0', label='best fit')
+# ax.set_xlim(0, 1)
+ax.set_ylim(0, 1) 
+ax.legend()
+
+
+
 
 # Switching bridge elements here
 
 
 # Remove the entries in the df for CS1 that are 0 and have already progressed through CS1 in entirety (meaning the element will not experience CS1 again unless an outside influence is applied to it such as replacement or repair).  
+
+
 
 topFlg_rc = topFlg_rc.loc[~((topFlg_rc['CS1'] == 0.0) & (topFlg_rc['CS2'] + topFlg_rc['CS3'] + topFlg_rc['CS4'] == 1.0)),:]
 
