@@ -7,13 +7,14 @@ Created on Thu Oct 21 16:29:08 2021
 import pandas as pd
 import xml.etree.ElementTree as et
 
+import collections
+
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 
 from datetime import date, datetime, timedelta
 import datetime as dt
-import seaborn as sns
 # import radar
 
 
@@ -67,76 +68,229 @@ pd. __version__
 
 # Parse the XML files for the individual years (Important to keep the tags in the original files the same in the parse commands or the data at those locations may come in as None or NaN!)
 
-df2016=parse_XML("2016CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# !!!
+# Here
+# !!!
+
+import glob
+
+# Search for the xml files from the FHWA in this (current) directory 
+
+files = glob.glob('*.xml')
+print(files)
+
+# Split filename at the underscore (_) creates a year with the state abbreviation after- at least in the case of the files for the state of California.
+
+# Then follow on by adding df to the front of the string to act as variables names for the different DataFrames.
+
+df_names = ["df" + i.split('_', 1)[0] for i in files]
+
+#{df_name: files for df_name in  df_names}
+
+root= "./CAL_BridgeData"
+  #container for the various xmls contained in the directory
+
+
+
+
+"""
+https://www.geeksforgeeks.org/how-to-read-multiple-data-files-into-pandas/?ref=rp
+
+# assign dataset names
+list_of_names = ['crime','username']
+ 
+# create empty list
+dataframes_list = []
+ 
+# append datasets into the list
+for i in range(len(list_of_names)):
+    temp_df = pd.read_csv("./csv/"+list_of_names[i]+".csv")
+    dataframes_list.append(temp_df)
+    
+#!!!
+    
+# assign path
+path, dirs, files = next(os.walk("./csv/"))
+file_count = len(files)
+
+
+# collect xml filenames and paths 
+for dirpath, dirnames, filenames in os.walk(root):
+    for file in files:
+        files.append(dirpath + '\\' + file)
+
+# create empty list
+dataframes_list = []
+ 
+# append datasets to the list
+for i in range(file_count):
+    temp_df = pd.read_csv("./csv/"+files[i])
+    dataframes_list.append(temp_df)
+     
+# display datasets
+for dataset in dataframes_list:
+    display(dataset)
+
+    
+"""
+
+# collect xml filenames and paths 
+for dirpath, dirnames, filenames in os.walk(root):
+    for file in files:
+        files.append(dirpath + '\\' + file)
+
+# Hard coded, unfortunately
+df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
+
+# create empty list for dataframes
+dataframes = []
+ 
+# append datasets into the list
+for i in range(len(df_names)):
+    temp_df = parse_XML(files[i], df_cols)
+    dataframes.append(temp_df)
+    
+nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
+
+"""
+for key in nameToDF:
+    print(key)
+    key[i] = nameToDF[key]
+"""
+"""    
+for i in NameToDF:
+    i == NameToDF[i]
+"""
+"""
+def create_dfs(df_names):
+    dfs = {}
+    for x in df_names:
+        dfs[x] = dataframes
+    return dfs
+    
+dfs = create_dfs(df_names)
+"""
+
+
+"""
+# Assigning the df_names list to the dataframes_list list.
+class DFs(object):
+    def __init__(self, DFName, DF):
+        self.DFName = DFName
+        self.DF = DF
+        
+    def __str__(self):
+        return "{0.DFName} = {0.DF}".format(self)
+
+def AssignVarToDF(df_namesList, dataframesList):
+    if (len(df_namesList) == len(dataframesList)):
+        return [DFs(df_namesList[x], dataframesList[x]) for x in range(len(df_namesList))]
+    else:
+        print("df_names list and dataframes list should have same length")
+    
+df_names = AssignVarToDF(df_names, dataframes)
+
+for df_name in df_names:
+    print(df_name)
+"""
+
+
+# !!!
+
+#for df_name in df_names:
+#    df_name = parse_XML(files[i], ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+"""
+list_of_tuple = collections.namedtuple('List', 'name value')
+
+lists = list(list_of_tuple(*item) for item in nameToDF.items())
+
+
+for lists():
+  """  
+
+for k, v in nameToDF.items():
+    vars()[k] = v
+
+
+"""
+df2016CACA=parse_XML("2016CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 56275 lines long
 
-df2017=parse_XML("2017CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2017CA=parse_XML("2017CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 75574 lines long
 
-df2018=parse_XML("2018CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2018CA=parse_XML("2018CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 78832 lines long
 
-df2019=parse_XML("2019CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2019CA=parse_XML("2019CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 82570 lines long
 
-df2020=parse_XML("2020CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2020CA=parse_XML("2020CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 83627 lines long
 
-df2021=parse_XML("2021CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2021CA=parse_XML("2021CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 83933 lines long
 
-df2022=parse_XML("2022CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+df2022CA=parse_XML("2022CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 # 85926 lines long
-
+"""
 # Looking at how many occurrences of a single bridge occur in each year so that the total possible number of bridges being observed is accurate.  
-df2016.groupby('STRUCNUM').count() 
+
+# !!!
+# Here
+# !!!
+
+
+df2016CA.groupby('STRUCNUM').count() 
 """ 7578 """
 
-df2017.groupby('STRUCNUM').count()
+df2017CA.groupby('STRUCNUM').count()
 """ 10019 """
 
-df2018.groupby('STRUCNUM').count()
+df2018CA.groupby('STRUCNUM').count()
 """ 10439 """
     
-df2019.groupby('STRUCNUM').count()
+df2019CA.groupby('STRUCNUM').count()
 """ 10851 """
 
-df2020.groupby('STRUCNUM').count()
+df2020CA.groupby('STRUCNUM').count()
 """ 10873 """
 
-df2021.groupby('STRUCNUM').count()
+df2021CA.groupby('STRUCNUM').count()
 """ 10877 """
 
-df2022.groupby('STRUCNUM').count()
+df2022CA.groupby('STRUCNUM').count()
 """ 10899 """
 
 
 """ the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well """
-
-df2016=df2016[df2016.EPN.isnull()]
+# !!!
+# Here
+# !!!
+df2016CA=df2016CA[df2016CA.EPN.isnull()]
 
 # Drops the number of lines from 56275 to 48966
 
-df2017=df2017[df2017.EPN.isnull()]
+df2017CA=df2017CA[df2017CA.EPN.isnull()]
 # Drops the number of lines from 75574 to 66481
 
-df2018=df2018[df2018.EPN.isnull()]
+df2018CA=df2018CA[df2018CA.EPN.isnull()]
 # Drops the number of lines from 78832 to 66859
 
-df2019=df2019[df2019.EPN.isnull()]
+df2019CA=df2019CA[df2019CA.EPN.isnull()]
 # Drops the number of lines from 82570 to 67318
 
-df2020=df2020[df2020.EPN.isnull()]
+df2020CA=df2020CA[df2020CA.EPN.isnull()]
 # Drops the number of lines from 83627 to 67893
 
-df2021=df2021[df2021.EPN.isnull()]
+df2021CA=df2021CA[df2021CA.EPN.isnull()]
 # Drops the number of lines from 83933 to 68184
 
-df2022=df2022[df2022.EPN.isnull()]
+df2022CA=df2022CA[df2022CA.EPN.isnull()]
 # Drops the number of lines from 85926 to 68913
 
 
-""" the ...EPN.isnull() expressions above are required to merge the data properly while resulting in a number of STRUCNUM smaller than 10899, that being the total number of possible matches between the datasets  """
+""" the ...EPN.isnull() expressions above are required to merge the data properly while resulting in a number of STRUCNUM smaller than 10899, that being the largest total number of possible matches amongst all the datasets  """
 
 
 # !!!
@@ -153,38 +307,42 @@ df2022=df2022[df2022.EPN.isnull()]
 # !!!
 
 # MVP II- automate the steps below rather than inserting filename manually as is done here, but for now place the filename in a column in the dfs after parsing, filename is placed in the first column.
+# !!!
+# Here
+# !!!
+df2016CA.insert(0, 'filename_16', '2016CA_ElementData.xml')
 
-df2016.insert(0, 'filename_16', '2016CA_ElementData.xml')
+df2017CA.insert(0, 'filename_17', '2017CA_ElementData.xml')
 
-df2017.insert(0, 'filename_17', '2017CA_ElementData.xml')
+df2018CA.insert(0, 'filename_18', '2018CA_ElementData.xml')
 
-df2018.insert(0, 'filename_18', '2018CA_ElementData.xml')
+df2019CA.insert(0, 'filename_19', '2019CA_ElementData.xml')
 
-df2019.insert(0, 'filename_19', '2019CA_ElementData.xml')
+df2020CA.insert(0, 'filename_20', '2020CA_ElementData.xml')
 
-df2020.insert(0, 'filename_20', '2020CA_ElementData.xml')
+df2021CA.insert(0, 'filename_21', '2021CA_ElementData.xml')
 
-df2021.insert(0, 'filename_21', '2021CA_ElementData.xml')
-
-df2022.insert(0, 'filename_22', '2022CA_ElementData.xml')
+df2022CA.insert(0, 'filename_22', '2022CA_ElementData.xml')
 
 
 # b_17 thru b_21 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_17 - b_21 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
 
+# !!!
+# Here
+# !!!
+b_16 = df2016CA['STRUCNUM'].to_numpy()
 
-b_16 = df2016['STRUCNUM'].to_numpy()
+b_17 = df2017CA['STRUCNUM'].to_numpy()
 
-b_17 = df2017['STRUCNUM'].to_numpy()
+b_18 = df2018CA['STRUCNUM'].to_numpy()
 
-b_18 = df2018['STRUCNUM'].to_numpy()
+b_19 = df2019CA['STRUCNUM'].to_numpy()
 
-b_19 = df2019['STRUCNUM'].to_numpy()
+b_20 = df2020CA['STRUCNUM'].to_numpy()
 
-b_20 = df2020['STRUCNUM'].to_numpy()
+b_21 = df2021CA['STRUCNUM'].to_numpy()
 
-b_21 = df2021['STRUCNUM'].to_numpy()
-
-b_22 = df2022['STRUCNUM'].to_numpy()
+b_22 = df2022CA['STRUCNUM'].to_numpy()
 
 
 # !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (denoted by STRUCNUM) that are common to all the years of data being analyzed (2017 - 2021 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 5 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that elemeent number (EN) each year- some years may include condition states associated with that element in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
@@ -199,49 +357,53 @@ strucnum_in_all = sorted(strucnum_in_all)
 
 
 # Remove STRUCNUM not present in all dfs
-
-df2016 = df2016[np.isin(df2016['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# !!!
+# Here
+# !!!
+df2016CA = df2016CA[np.isin(df2016CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # No. of lines 48966
 
-df2017 = df2017[np.isin(df2017['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2017CA = df2017CA[np.isin(df2017CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # No. of lines 66481
 
-df2018 = df2018[np.isin(df2018['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2018CA = df2018CA[np.isin(df2018CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 57830 lines long orig.
 # No. of lines 66859
 
-df2019 = df2019[np.isin(df2019['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2019CA = df2019CA[np.isin(df2019CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 52036 lines long orig.
 # No. of lines 67318
 
-df2020 = df2020[np.isin(df2020['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2020CA = df2020CA[np.isin(df2020CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 52619 lines long orig.
 # No. of lines 67893
 
-df2021 = df2021[np.isin(df2021['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2021CA = df2021CA[np.isin(df2021CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
 # No. of lines 68184
 
-df2022 = df2022[np.isin(df2022['STRUCNUM'].to_numpy(), strucnum_in_all)]
+df2022CA = df2022CA[np.isin(df2022CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
 # No. of lines 68913
 
 
 # Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2016_mod, strucnum_2017_mod, etc.
+# !!!
+# Here
+# !!!
+strucnum_2016_mod = df2016CA['STRUCNUM'].unique()
 
-strucnum_2016_mod = df2016['STRUCNUM'].unique()
+strucnum_2017_mod = df2017CA['STRUCNUM'].unique()
 
-strucnum_2017_mod = df2017['STRUCNUM'].unique()
+strucnum_2018_mod = df2018CA['STRUCNUM'].unique()
 
-strucnum_2018_mod = df2018['STRUCNUM'].unique()
+strucnum_2019_mod = df2019CA['STRUCNUM'].unique()
 
-strucnum_2019_mod = df2019['STRUCNUM'].unique()
+strucnum_2020_mod = df2020CA['STRUCNUM'].unique()
 
-strucnum_2020_mod = df2020['STRUCNUM'].unique()
+strucnum_2021_mod = df2021CA['STRUCNUM'].unique()
 
-strucnum_2021_mod = df2021['STRUCNUM'].unique()
-
-strucnum_2022_mod = df2022['STRUCNUM'].unique()
+strucnum_2022_mod = df2022CA['STRUCNUM'].unique()
 
 
 # strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod 
@@ -249,6 +411,10 @@ strucnum_2022_mod = df2022['STRUCNUM'].unique()
 
 
 from array import *
+
+# !!!
+# Here
+# !!!
 
 strucnum_2016_mod.tolist()
 
@@ -264,7 +430,7 @@ strucnum_2021_mod.tolist()
 
 strucnum_2022_mod.tolist()
 
-import collections
+
 
 # Is this the list of bridges common to all years that I would use to make the dfs that have the missing data I could replace?  
 
@@ -273,7 +439,7 @@ if collections.Counter(strucnum_2022_mod) == collections.Counter(strucnum_2021_m
 else :
     print ("The lists are not identical")
 
-# lists associated with df2022 and df2021 are identical.
+# lists associated with df2022CA and df2021CA are identical.
 
 # !!!
 # qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()} ... Make the STRUCNUM of the list strucnum_in_all into individual variables (there will be 8847 of them I assume) using the code at the beginning of this line as a guide to come up with a variable that will have the nomenclature eN_in_sTrucnum_000000000000004 (the one shown here would be a variable for STRUCNUM = 000000000000004 without anything attached to it denoting the year assessed) as a means of storing the all EN associated with that STRUCNUM for each year so there will be 8847*5 = 44235 total of those variables 
@@ -299,19 +465,19 @@ else :
 #       i. 	IF a bridge element present in a bridge not meeting the criteria outlined in a. above (i.e. a bridge or STRUCNUM that is not eliminated from the data because that STRUCNUM IS present in all years under consideration) is not present and its condition state observed and recorded in all years being considered that bridge element (EN) is eliminated from the data.  (So eliminate the bridges first if they aren’t present in all the years then eliminate the elements from the bridges if the elements are not present in all the years for those bridges)
 
 
-# Now begins the merging of different dataframes: Going to start by merging the two longest which are df2021 and df2022
+# Now begins the merging of different dataframes: Going to start by merging the two longest which are df2021CA and df2022CA
 
-# The nomenclature for these merges is to place the two digit year corresponding to the next smallest df number at the beginning of the variable name as the merges are made, i.e. in the manner that df20_21_22 is merged below after the larger dfs of df2022 and df2021 have been merged.
+# The nomenclature for these merges is to place the two digit year corresponding to the next smallest df number at the beginning of the variable name as the merges are made, i.e. in the manner that df20_21_22 is merged below after the larger dfs of df2022CA and df2021CA have been merged.
 
-df22_21 = pd.merge(df2022, df2021, suffixes=['_22', '_21'], on=['STRUCNUM','EN'])
+df22_21 = pd.merge(df2022CA, df2021CA, suffixes=['_22', '_21'], on=['STRUCNUM','EN'])
 # pre merge the longest of the 2 dfs is 68913 lines long
 # Post merge the length is 67758 lines long
 
 
-# The next longest is df2020 at 67689 lines long
+# The next longest is df2020CA at 67689 lines long
 
-df20_22_21 = pd.merge(df2020, df22_21, on=['STRUCNUM', 'EN'])
-# pre merge the longest of the 2 dfs is df2021 at 67758 lines long
+df20_22_21 = pd.merge(df2020CA, df22_21, on=['STRUCNUM', 'EN'])
+# pre merge the longest of the 2 dfs is df2021CA at 67758 lines long
 # Post merge the length of df20_22_21 is 67088 lines long
 
 
@@ -323,9 +489,9 @@ df20_22_21.rename(columns={'FHWAED':'FHWAED_20', 'STATE':'STATE_20', 'EPN': 'EPN
 
 
 
-# Of the remaining dfs df2019 is longest at 67116 lines long
+# Of the remaining dfs df2019CA is longest at 67116 lines long
 
-df19_20_22_21 = pd.merge(df2019, df20_22_21, on=['STRUCNUM', 'EN'])
+df19_20_22_21 = pd.merge(df2019CA, df20_22_21, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df21_20_19_17 is 65899 lines long
 
@@ -334,9 +500,9 @@ df19_20_22_21 = pd.merge(df2019, df20_22_21, on=['STRUCNUM', 'EN'])
 df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': 'EPN_19', 'TOTALQTY':'TOTALQTY_19', 'CS1':'CS1_19', 'CS2':'CS2_19', 'CS3':'CS3_19', 'CS4':'CS4_19',}, inplace = True)
 
 
-# Merge of df2018 into the already merged years  2019 2020 2021 and 2022
+# Merge of df2018CA into the already merged years  2019 2020 2021 and 2022
 
-df18_19_20_22_21 = pd.merge(df2018, df19_20_22_21, on=['STRUCNUM', 'EN'])
+df18_19_20_22_21 = pd.merge(df2018CA, df19_20_22_21, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df18_19_20_22_21 is 64628 lines long
 
@@ -345,7 +511,7 @@ df18_19_20_22_21 = pd.merge(df2018, df19_20_22_21, on=['STRUCNUM', 'EN'])
 df18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_18', 'STATE':'STATE_18', 'EPN': 'EPN_18', 'TOTALQTY':'TOTALQTY_18', 'CS1':'CS1_18', 'CS2':'CS2_18', 'CS3':'CS3_18', 'CS4':'CS4_18',}, inplace = True)
 
 # Merge 2017 into the df
-df17_18_19_20_22_21 = pd.merge(df2017, df18_19_20_22_21, on=['STRUCNUM', 'EN'])
+df17_18_19_20_22_21 = pd.merge(df2017CA, df18_19_20_22_21, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df18_19_20_22_21 is 63451 lines long
 
@@ -354,7 +520,7 @@ df17_18_19_20_22_21 = pd.merge(df2017, df18_19_20_22_21, on=['STRUCNUM', 'EN'])
 df17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_17', 'STATE':'STATE_17', 'EPN': 'EPN_17', 'TOTALQTY':'TOTALQTY_17', 'CS1':'CS1_17', 'CS2':'CS2_17', 'CS3':'CS3_17', 'CS4':'CS4_17',}, inplace = True)
 
 # Merge 2016 into the df
-df16_17_18_19_20_22_21 = pd.merge(df2016, df17_18_19_20_22_21, on=['STRUCNUM', 'EN'])
+df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df16_17_18_19_20_22_21 is 46204 lines long
 
@@ -366,7 +532,7 @@ df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16',
 # Use the expression below as a starting point for 11/27/2022
 #abmt_rc = abmt_rc.loc[~((abmt_rc['CS2'] == 0.0) & (abmt_rc['CS1'] + abmt_rc['CS3'] + abmt_rc['CS4'] == 1.0)),:] 
 # !!! 
-# above expression is used to remove the rows from the dataframe that have a condition state within the set of observations being examined that equal zero- and as a result have the remainder of the CS on that row equal to 1 (i.e. checking that the sum of CS1-CS4 = the TOTALQTY - keep in mind that CS1-CS4 as they are used to compute regression are divided by the TOTALQTY and are manipulkated as a fraction of the total)
+# above expression is used to remove the rows from the dataframe that have a condition state within the set of observations being examined that equal zero- and as a result have the remainder of the CS on that row equal to 1 (i.e. checking that the sum of CS1-CS4 = the TOTALQTY - keep in mind that CS1-CS4 as they are used to compute regression are divided by the TOTALQTY and are manipulated as a fraction of the total)
 
 # Ideas for removing the rows that don't have consistent TOTALQTY numbers for the years observed: 
 # At least my latest is using the expression that the sum of TOTALQTY_17 thru TOTALQTY_22 divided by 7 must equal TOTALQTY_16.  This may not be that great of an idea because it's possible, although I would say unlikely, that the totals for each year could be right around the same number but not identical- but once added together and divided by 7 could equal the TOTALQTY_16 (i.e. the first year being observed in this case.) 
@@ -441,6 +607,10 @@ df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16',
     
 # These datafames will be in the general form of the following column headings: filename | STRUCNUM | EN | TOTALQTY | CS1 | CS2 | CS3 | CS4 and will be specific to the year represented in the variable name dfXX where XX is the 2 digit year (in this case ranging from 17 to 21).
 
+# !!!
+# Not sure 
+
+
 # for year 2016
 df16 = df16_17_18_19_20_22_21.iloc[:,[0,3,4,6,7,8,9,10]]
 
@@ -504,6 +674,30 @@ df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_d
 
 # el_names means Element Names
 # https://stackoverflow.com/questions/39502079/use-strings-in-a-list-as-variable-names-in-python
+
+
+# !!!
+# Here
+# !!!
+
+# !!!
+
+"""
+# create empty list for dataframes
+dataframes = []
+ 
+# append datasets into the list
+for i in range(len(df_names)):
+    temp_df = parse_XML(files[i], df_cols)
+    dataframes.append(temp_df)
+    
+nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
+
+for k, v in nameToDF.items():
+    vars()[k] = v
+"""
+    
+# !!!
 
 el_names = {'12': 'deck_rc',
             '13': 'deck_pc',
@@ -642,6 +836,10 @@ el_names = {'12': 'deck_rc',
 
 
 # Create the means to make the individual dataframes for each Element Number (EN) using getattr().
+
+# !!!
+# Not sure
+
 
 class df_names:
     pass
@@ -818,11 +1016,152 @@ data = [[1,2,3],[4,5,6],[7,8,9]]
 dictionary = dict(zip(user_contract, data))
 print(dictionary)
 """
+""" 
+Make the element dataframe be the variable of the form deck_rc, deck_pc, etc. 
+
+"""
+
+# !!!
+# Here
+# !!!
+
+el_names = {'12': 'deck_rc',
+            '13': 'deck_pc',
+   	        '15': 'topFlg_pc',
+   	        '16': 'topFlg_rc',
+   	        '28': 'stDeck_og',
+   	        '29': 'stDeck_cfg',
+       	    '30': 'stDeck_corrOrtho',
+            '31': 'deck_timb',
+            	'38': 'slab_rc',
+            	'39': 'slab_pc',
+            	'54': 'slab_timb',
+            	'60': 'deck_other',
+            	'65': 'slab_other',
+            	'102': 'cwBg_steel',
+            	'103': 'cwBg_pc',
+            	'105': 'cwBg_rc',
+            '106': 'cwBg_other',
+            '107': 'oGb_steel',
+            '109': 'oGb_pc',
++            '110': 'oGb_rc',
+            '111': 'oGb_timb',
+            '112': 'oGb_other',
+            '113': 'stringer_steel',
+            '115': 'stringer_pc',
+            '116': 'stringer_rc',
+            '117': 'stringer_timb',
+            '118': 'stringer_other',
+            '120': 'truss_steel',
+            '135': 'truss_timb',
+            '136': 'truss_other',
+            '141': 'arch_steel',
+            '142': 'arch_other',
+            '143': 'arch_pc',
+            '144': 'arch_rc',
+            '145': 'arch_masonry',
+            '146': 'arch_timb',
+            '147': 'cbl_mSt',
+            '148': 'cbl_secSt',
+            '149': 'cbl_secOthr',
+            '152': 'flrB_steel',
+            '154': 'flrB_pc',
+            '155': 'flrB_rc',
+            '156': 'flrB_timb',
+            '157': 'flrB_other',
+            '161': 'spph',
+            '162': 'sgp',
+            '170': 'rrcf',
+            '171': 'miscSS',
+            '180': 'eqrcII',
+            '181': 'eqrcC1',
+            '182': 'eqrc_Othr',
+            '202': 'col_st',
+            	'203': 'col_othr',
+            	'204': 'col_pc',
+            	'205': 'col_rc',
+            '206': 'col_timb',
+            '207': 'twr_st',
+            '208': 'tres_timb',
+            '210': 'pw_rc',
+            '211': 'pw_othr',
+            '212': 'pw_timb',
+            '213': 'pw_mas',
+            	'215': 'abmt_rc',
+            	'216': 'abmt_timb',
+            	'217': 'abmt_mas',
+            	'218': 'abmt_othr',
+            	'219': 'abmt_steel',
+            '220': 'pcf_rc',
+            '225': 'pile_st',
+            '226': 'pile_pc',
+            '227': 'pile_rc',
+            '228': 'pile_timb',
+            '229': 'pile_othr',
+            '231': 'pc_steel',
+            	'233': 'pc_PrConc',
+            	'234': 'pc_rc',
+            '235': 'pc_timb',
+            '236': 'pc_othr',
+            '240': 'culv_st',
+            '241': 'culv_rc',
+            '242': 'culv_timb',
+            '243': 'culv_othr',
+            '244': 'culv_mas',
+            '245': 'culv_pc',
+            '250': 'tunnel',
+            '251': 'pile_castSh',
+            '252': 'pile_castDr',
+            '254': 'cSh_stFH',
+            '255': 'cSh_stPH',
+            '256': 'slopeScP',
+           	'300': 'joint_sse',
+           	'301': 'joint_ps',
+           	'302': 'joint_cs',
+           	'303': 'joint_aws',
+            '304': 'joint_oe',
+            '305': 'joint_awo',
+            '306': 'joint_othr',
+            '307': 'joint_ap',
+            '308': 'joint_ssp',
+            '309': 'joint_sf',
+            '310': 'brg_el',
+            '311': 'brg_mov',
+            '312': 'brg_ec',
+            '313': 'brg_fxd',
+            '314': 'brg_pot',
+            '315': 'brg_dsk',
+            '316': 'brg_othr',
+            	'320': 'appSl_pc',
+            '321': 'appSl_rc',
+            	'330': 'br_m',
+            '331': 'br_rc',
+            '332': 'br_timb',
+            '333': 'br_othr',
+            '334': 'br_mas',
+            	'510': 'dws_ac',
+            	'511': 'dws_cp',
+            	'512': 'dws_ep',
+            '513': 'dws_timb',
+            '515': 'spc_p',
+            '516': 'spc_galv',
+            '517': 'spc_ws',
+            '520': 'rsps',
+            '521': 'cpc',
+            '522': 'deck_memb'}
+
+
+
 
 
 
 # 02/06/23 start here with the zip statement:
     
+    
+# !!!
+# Here
+# !!!    
+
     # Deck and slabs, 13 elements
 
 deck_rc = getattr(element_df, '12', None)
@@ -1492,6 +1831,11 @@ df_regr_abmt_rc.reset_index(inplace=True)
 df_regr_abmt_rc['time']=df_regr_abmt_rc['time'].apply(mpl_dates.date2num)
 df_regr_abmt_rc['time'] = df_regr_abmt_rc['time'].astype(float)
 
+
+# Start here 03/07/2023 with curve fitting and possibly just using a linear best fit package of some sort.  
+
+
+
 # np.polyfit is probably not the solution to our problem as it requires that the equation be a polynomial- and we cannot see a curve that would seem to fit our data- so we need to go back to a linear model or a feature engineering attempt to make the model "more" linear, and better suited to an OLS model.
 
 # Also the dates need to be put back to the state that will show as dates on the plots.
@@ -1618,16 +1962,11 @@ abmt_rc = getattr(element_df, '215', None)
 # Try to replace missing data from years missing ENs covered in other years
 # 
 
-
-
-
-
 """sns.lmplot(
     data=df_regr_abmt_rc,
     x='date_ordinal',
     y='CS1',
     scatter_kws={"color": "blue"}, line_kws={"color": "red"})
-
 
 
 seaborn.residplot(data=None, *, x=None, y=None, x_partial=None, y_partial=None, lowess=False, order=1, robust=False, dropna=True, label=None, color=None, scatter_kws=None, line_kws=None, ax=None)
