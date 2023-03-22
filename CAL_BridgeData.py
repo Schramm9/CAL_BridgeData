@@ -64,13 +64,11 @@ def parse_XML(xml_file, df_cols):
     https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
 """
 
+
 pd. __version__ 
 
 # Parse the XML files for the individual years (Important to keep the tags in the original files the same in the parse commands or the data at those locations may come in as None or NaN!)
 
-# !!!
-# Here
-# !!!
 
 import glob
 
@@ -90,28 +88,7 @@ df_names = ["df" + i.split('_', 1)[0] for i in files]
 root= "./CAL_BridgeData"
   #container for the various xmls contained in the directory
 
-
-
-
-"""
-https://www.geeksforgeeks.org/how-to-read-multiple-data-files-into-pandas/?ref=rp
-
-# assign dataset names
-list_of_names = ['crime','username']
- 
-# create empty list
-dataframes_list = []
- 
-# append datasets into the list
-for i in range(len(list_of_names)):
-    temp_df = pd.read_csv("./csv/"+list_of_names[i]+".csv")
-    dataframes_list.append(temp_df)
-    
-#!!!
-    
-# assign path
-path, dirs, files = next(os.walk("./csv/"))
-file_count = len(files)
+# 46204 is the line in the df_data dataframe that marks the switch from 2016 to 2017- so the amount of data is large- may need to look into that further along as we look for things to make sense as far as this analysis goes.
 
 
 # collect xml filenames and paths 
@@ -119,27 +96,7 @@ for dirpath, dirnames, filenames in os.walk(root):
     for file in files:
         files.append(dirpath + '\\' + file)
 
-# create empty list
-dataframes_list = []
- 
-# append datasets to the list
-for i in range(file_count):
-    temp_df = pd.read_csv("./csv/"+files[i])
-    dataframes_list.append(temp_df)
-     
-# display datasets
-for dataset in dataframes_list:
-    display(dataset)
-
-    
-"""
-
-# collect xml filenames and paths 
-for dirpath, dirnames, filenames in os.walk(root):
-    for file in files:
-        files.append(dirpath + '\\' + file)
-
-# Hard coded, unfortunately
+# Hard coded, unfortunately, possibly look for a way to find columns from xml, probably a fairly common thing, search it.   Or make it part of MVP II.
 df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
 
 # create empty list for dataframes
@@ -148,146 +105,45 @@ dataframes = []
 # append datasets into the list
 for i in range(len(df_names)):
     temp_df = parse_XML(files[i], df_cols)
-    dataframes.append(temp_df)
+    dataframes.append(temp_df)  # creates a list of dataframes with the contents of the xml files read into them.
     
-nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
-
-"""
-for key in nameToDF:
-    print(key)
-    key[i] = nameToDF[key]
-"""
-"""    
-for i in NameToDF:
-    i == NameToDF[i]
-"""
-"""
-def create_dfs(df_names):
-    dfs = {}
-    for x in df_names:
-        dfs[x] = dataframes
-    return dfs
+# df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
     
-dfs = create_dfs(df_names)
-"""
+
+df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}  # creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  
 
 
-"""
-# Assigning the df_names list to the dataframes_list list.
-class DFs(object):
-    def __init__(self, DFName, DF):
-        self.DFName = DFName
-        self.DF = DF
-        
-    def __str__(self):
-        return "{0.DFName} = {0.DF}".format(self)
-
-def AssignVarToDF(df_namesList, dataframesList):
-    if (len(df_namesList) == len(dataframesList)):
-        return [DFs(df_namesList[x], dataframesList[x]) for x in range(len(df_namesList))]
-    else:
-        print("df_names list and dataframes list should have same length")
-    
-df_names = AssignVarToDF(df_names, dataframes)
-
-for df_name in df_names:
-    print(df_name)
-"""
+# bridge_counts_un means number of unique bridges or STRUCNUM in each df.
 
 
-# !!!
-
-#for df_name in df_names:
-#    df_name = parse_XML(files[i], ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-"""
-list_of_tuple = collections.namedtuple('List', 'name value')
-
-lists = list(list_of_tuple(*item) for item in nameToDF.items())
 
 
-for lists():
-  """  
-
-for k, v in nameToDF.items():
-    vars()[k] = v
-
+bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
 
 """
-df2016CACA=parse_XML("2016CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 56275 lines long
-
-df2017CA=parse_XML("2017CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 75574 lines long
-
-df2018CA=parse_XML("2018CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 78832 lines long
-
-df2019CA=parse_XML("2019CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 82570 lines long
-
-df2020CA=parse_XML("2020CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 83627 lines long
-
-df2021CA=parse_XML("2021CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 83933 lines long
-
-df2022CA=parse_XML("2022CA_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
-# 85926 lines long
-"""
-# Looking at how many occurrences of a single bridge occur in each year so that the total possible number of bridges being observed is accurate.  
-
-# !!!
-# Here
-# !!!
-
-
 df2016CA.groupby('STRUCNUM').count() 
-""" 7578 """
+# 7578
 
 df2017CA.groupby('STRUCNUM').count()
-""" 10019 """
+# 10019
 
 df2018CA.groupby('STRUCNUM').count()
-""" 10439 """
+# 10439
     
 df2019CA.groupby('STRUCNUM').count()
-""" 10851 """
+# 10851
 
 df2020CA.groupby('STRUCNUM').count()
-""" 10873 """
+# 10873
 
 df2021CA.groupby('STRUCNUM').count()
-""" 10877 """
+# 10877
 
 df2022CA.groupby('STRUCNUM').count()
-""" 10899 """
-
-
-""" the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well """
-# !!!
-# Here
-# !!!
-df2016CA=df2016CA[df2016CA.EPN.isnull()]
-
-# Drops the number of lines from 56275 to 48966
-
-df2017CA=df2017CA[df2017CA.EPN.isnull()]
-# Drops the number of lines from 75574 to 66481
-
-df2018CA=df2018CA[df2018CA.EPN.isnull()]
-# Drops the number of lines from 78832 to 66859
-
-df2019CA=df2019CA[df2019CA.EPN.isnull()]
-# Drops the number of lines from 82570 to 67318
-
-df2020CA=df2020CA[df2020CA.EPN.isnull()]
-# Drops the number of lines from 83627 to 67893
-
-df2021CA=df2021CA[df2021CA.EPN.isnull()]
-# Drops the number of lines from 83933 to 68184
-
-df2022CA=df2022CA[df2022CA.EPN.isnull()]
-# Drops the number of lines from 85926 to 68913
+# 10899
+"""
+for k, v in df_nameToDF.items():
+    vars()[k] = v  # creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
 
 
 """ the ...EPN.isnull() expressions above are required to merge the data properly while resulting in a number of STRUCNUM smaller than 10899, that being the largest total number of possible matches amongst all the datasets  """
@@ -325,7 +181,7 @@ df2021CA.insert(0, 'filename_21', '2021CA_ElementData.xml')
 df2022CA.insert(0, 'filename_22', '2022CA_ElementData.xml')
 
 
-# b_17 thru b_21 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_17 - b_21 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
+# b_16 thru b_22 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_22 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
 
 # !!!
 # Here
@@ -346,6 +202,65 @@ b_22 = df2022CA['STRUCNUM'].to_numpy()
 
 
 # !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (denoted by STRUCNUM) that are common to all the years of data being analyzed (2017 - 2021 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 5 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that elemeent number (EN) each year- some years may include condition states associated with that element in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
+
+
+
+
+
+"""
+df2016CA
+# 56275 lines long
+
+df2017CA
+# 75574 lines long
+
+df2018CA
+# 78832 lines long
+
+df2019CA
+# 82570 lines long
+
+df2020CA
+# 83627 lines long
+
+df2021CA
+# 83933 lines long
+
+df2022CA
+# 85926 lines long
+"""
+# Looking at how many occurrences of a single bridge occur in each year so that the total possible number of bridges being observed is accurate.  
+
+# !!!
+# Here
+# !!!
+
+# the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well
+
+
+
+
+df2016CA=df2016CA[df2016CA.EPN.isnull()]
+
+# Drops the number of lines from 56275 to 48966
+
+df2017CA=df2017CA[df2017CA.EPN.isnull()]
+# Drops the number of lines from 75574 to 66481
+
+df2018CA=df2018CA[df2018CA.EPN.isnull()]
+# Drops the number of lines from 78832 to 66859
+
+df2019CA=df2019CA[df2019CA.EPN.isnull()]
+# Drops the number of lines from 82570 to 67318
+
+df2020CA=df2020CA[df2020CA.EPN.isnull()]
+# Drops the number of lines from 83627 to 67893
+
+df2021CA=df2021CA[df2021CA.EPN.isnull()]
+# Drops the number of lines from 83933 to 68184
+
+df2022CA=df2022CA[df2022CA.EPN.isnull()]
+# Drops the number of lines from 85926 to 68913
 
 
 # Determine the set of STRUCNUM common to all years observed.  
@@ -697,6 +612,7 @@ for k, v in nameToDF.items():
     vars()[k] = v
 """
     
+
 # !!!
 
 el_names = {'12': 'deck_rc',
