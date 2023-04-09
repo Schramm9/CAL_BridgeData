@@ -22,6 +22,8 @@ import io
 
 import os
 
+
+import functools as ft
 from functools import reduce
 
 import matplotlib.dates as mpl_dates
@@ -106,7 +108,12 @@ dataframes = []
 for i in range(len(df_names)):
     temp_df = parse_XML(files[i], df_cols)
     dataframes.append(temp_df)  # creates a list of dataframes with the contents of the xml files read into them.
-    
+ 
+# place the filename from which data for the particular dataframe is read in as a new column in each dataframe.    
+for z in range(len(files)):
+    dataframes[z]['filename'] = files[z]
+ 
+   
 # df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
     
 
@@ -144,7 +151,7 @@ df2022CA.groupby('STRUCNUM').count()
 """
 for k, v in df_nameToDF.items():
     vars()[k] = v  # creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
-
+#df2016CA.groupby('STRUCNUM').count()
 
 """ the ...EPN.isnull() expressions above are required to merge the data properly while resulting in a number of STRUCNUM smaller than 10899, that being the largest total number of possible matches amongst all the datasets  """
 
@@ -166,6 +173,7 @@ for k, v in df_nameToDF.items():
 # !!!
 # Here
 # !!!
+"""
 df2016CA.insert(0, 'filename_16', '2016CA_ElementData.xml')
 
 df2017CA.insert(0, 'filename_17', '2017CA_ElementData.xml')
@@ -179,9 +187,20 @@ df2020CA.insert(0, 'filename_20', '2020CA_ElementData.xml')
 df2021CA.insert(0, 'filename_21', '2021CA_ElementData.xml')
 
 df2022CA.insert(0, 'filename_22', '2022CA_ElementData.xml')
-
+"""
 
 # b_16 thru b_22 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_22 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
+
+# In other words a lot of what happens below all the way to the area where the slicing of the concatenated dataframe begins is all meant to insure that the STRUCNUM for each year match each other and that random bridges and their associated data aren't being included in the data I intend to analyze.
+
+# Directly below I need to take something from the df_nameToDF dictionary and make 
+
+import copy
+
+
+# b_np_wrapper is a variable meant to copy the original df_nameToDF dictionary and then use it for the purposes of making the variables consisting of the STRUCNUM column of each dataframe value in the dict and then convert that to a numpy array.  
+
+#b_np_wrapper = copy.deepcopy(df_nameToDF)
 
 # !!!
 # Here
@@ -235,7 +254,7 @@ df2022CA
 # Here
 # !!!
 
-# the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well
+# the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well *** I still need to explain to myself why this is necessary in order to avoid multiple entries of the same element for a single bridge.  
 
 
 
@@ -276,30 +295,30 @@ strucnum_in_all = sorted(strucnum_in_all)
 # Here
 # !!!
 df2016CA = df2016CA[np.isin(df2016CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
-# No. of lines 48966
+# No. of lines 48798
 
 df2017CA = df2017CA[np.isin(df2017CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
-# No. of lines 66481
+# No. of lines 49077
 
 df2018CA = df2018CA[np.isin(df2018CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 57830 lines long orig.
-# No. of lines 66859
+# No. of lines 49430
 
 df2019CA = df2019CA[np.isin(df2019CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 52036 lines long orig.
-# No. of lines 67318
+# No. of lines 49671
 
 df2020CA = df2020CA[np.isin(df2020CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 52619 lines long orig.
-# No. of lines 67893
+# No. of lines 50137
 
 df2021CA = df2021CA[np.isin(df2021CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
-# No. of lines 68184
+# No. of lines 50287
 
 df2022CA = df2022CA[np.isin(df2022CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
-# No. of lines 68913
+# No. of lines 51033
 
 
 # Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2016_mod, strucnum_2017_mod, etc.
@@ -384,55 +403,58 @@ else :
 
 # The nomenclature for these merges is to place the two digit year corresponding to the next smallest df number at the beginning of the variable name as the merges are made, i.e. in the manner that df20_21_22 is merged below after the larger dfs of df2022CA and df2021CA have been merged.
 
+df_merged = 
+
+
 df22_21 = pd.merge(df2022CA, df2021CA, suffixes=['_22', '_21'], on=['STRUCNUM','EN'])
-# pre merge the longest of the 2 dfs is 68913 lines long
-# Post merge the length is 67758 lines long
+# pre merge the longest of the 2 dfs is 51033 lines long
+# Post merge the length is 50104 lines long
 
 
-# The next longest is df2020CA at 67689 lines long
+# The next longest is df2020CA at 50137 lines long
 
 df20_22_21 = pd.merge(df2020CA, df22_21, on=['STRUCNUM', 'EN'])
 # pre merge the longest of the 2 dfs is df2021CA at 67758 lines long
-# Post merge the length of df20_22_21 is 67088 lines long
+# Post merge the length of df20_22_21 is 49754 lines long
 
 
 # Change of suffixes post merge
 
 #df.rename(columns = {'old_col1':'new_col1', 'old_col2':'new_col2'}, inplace = True)
 
-df20_22_21.rename(columns={'FHWAED':'FHWAED_20', 'STATE':'STATE_20', 'EPN': 'EPN_20', 'TOTALQTY':'TOTALQTY_20', 'CS1':'CS1_20', 'CS2':'CS2_20', 'CS3':'CS3_20', 'CS4':'CS4_20',}, inplace = True)
+df20_22_21.rename(columns={'FHWAED':'FHWAED_20', 'STATE':'STATE_20', 'EPN': 'EPN_20', 'TOTALQTY':'TOTALQTY_20', 'CS1':'CS1_20', 'CS2':'CS2_20', 'CS3':'CS3_20', 'CS4':'CS4_20', 'filename':'filename_20'}, inplace = True)
 
 
 
-# Of the remaining dfs df2019CA is longest at 67116 lines long
+# Of the remaining dfs df2019CA is longest at 49671 lines long
 
 df19_20_22_21 = pd.merge(df2019CA, df20_22_21, on=['STRUCNUM', 'EN'])
 
-# Post merge the length of df21_20_19_17 is 65899 lines long
+# Post merge the length of df19_20_22_21 is 48734 lines long
 
 # Change of suffixes post merge
 
-df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': 'EPN_19', 'TOTALQTY':'TOTALQTY_19', 'CS1':'CS1_19', 'CS2':'CS2_19', 'CS3':'CS3_19', 'CS4':'CS4_19',}, inplace = True)
+df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': 'EPN_19', 'TOTALQTY':'TOTALQTY_19', 'CS1':'CS1_19', 'CS2':'CS2_19', 'CS3':'CS3_19', 'CS4':'CS4_19','filename':'filename_19'}, inplace = True)
 
 
 # Merge of df2018CA into the already merged years  2019 2020 2021 and 2022
 
 df18_19_20_22_21 = pd.merge(df2018CA, df19_20_22_21, on=['STRUCNUM', 'EN'])
 
-# Post merge the length of df18_19_20_22_21 is 64628 lines long
+# Post merge the length of df18_19_20_22_21 is 47978 lines long
 
 # Change of suffixes post merge
 
-df18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_18', 'STATE':'STATE_18', 'EPN': 'EPN_18', 'TOTALQTY':'TOTALQTY_18', 'CS1':'CS1_18', 'CS2':'CS2_18', 'CS3':'CS3_18', 'CS4':'CS4_18',}, inplace = True)
+df18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_18', 'STATE':'STATE_18', 'EPN': 'EPN_18', 'TOTALQTY':'TOTALQTY_18', 'CS1':'CS1_18', 'CS2':'CS2_18', 'CS3':'CS3_18', 'CS4':'CS4_18','filename':'filename_18'}, inplace = True)
 
 # Merge 2017 into the df
 df17_18_19_20_22_21 = pd.merge(df2017CA, df18_19_20_22_21, on=['STRUCNUM', 'EN'])
 
-# Post merge the length of df18_19_20_22_21 is 63451 lines long
+# Post merge the length of df17_18_19_20_22_21 is 46863 lines long
 
 # Change of suffixes post merge
 
-df17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_17', 'STATE':'STATE_17', 'EPN': 'EPN_17', 'TOTALQTY':'TOTALQTY_17', 'CS1':'CS1_17', 'CS2':'CS2_17', 'CS3':'CS3_17', 'CS4':'CS4_17',}, inplace = True)
+df17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_17', 'STATE':'STATE_17', 'EPN': 'EPN_17', 'TOTALQTY':'TOTALQTY_17', 'CS1':'CS1_17', 'CS2':'CS2_17', 'CS3':'CS3_17', 'CS4':'CS4_17','filename':'filename_17'}, inplace = True)
 
 # Merge 2016 into the df
 df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM', 'EN'])
@@ -441,7 +463,7 @@ df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM',
 
 # Change of suffixes post merge
 
-df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16',}, inplace = True)
+df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
 
 # Original df16_17_18_19_20_22_21 length = 46204 lines long
 # Use the expression below as a starting point for 11/27/2022
