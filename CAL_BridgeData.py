@@ -17,6 +17,7 @@ from datetime import date, datetime, timedelta
 import datetime as dt
 # import radar
 
+import copy
 
 import io
 
@@ -30,6 +31,11 @@ import matplotlib.dates as mpl_dates
 from matplotlib.dates import date2num
 import seaborn as sns
 import time
+
+"""
+start_time = time.time()
+"""
+
 import matplotlib.ticker as ticker
 
 # Read in the XML files as they were downloaded from the FHWA.  
@@ -112,17 +118,26 @@ for i in range(len(df_names)):
 # place the filename from which data for the particular dataframe is read in as a new column in each dataframe.    
 for z in range(len(files)):
     dataframes[z]['filename'] = files[z]
- 
-   
-# df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
+
+# !!!
+
+# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
+
+# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
     
 
-df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}  # creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  
+# !!!
+# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
+   
+ 
+# df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
+ 
+df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))} 
+
+# creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  
 
 
-# bridge_counts_un means number of unique bridges or STRUCNUM in each df.
-
-
+# bridge_counts_un means number of unique bridges or STRUCNUM in each df, performing this action to get a sense of the number of unique bridges in each data set.  
 
 
 bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
@@ -153,58 +168,18 @@ for k, v in df_nameToDF.items():
     vars()[k] = v  # creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
 #df2016CA.groupby('STRUCNUM').count()
 
-""" the ...EPN.isnull() expressions above are required to merge the data properly while resulting in a number of STRUCNUM smaller than 10899, that being the largest total number of possible matches amongst all the datasets  """
+# Looked for a means of merging the dataframes within the dict of dataframes- without having to separate them out into individual variables- it may be possible, MVP II.
 
 
-# !!!
-
-# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
-
-# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
-
-# !!!
-
-# MVP II 
-# Make the names of xml files be read into a column in the resulting dataframe as they are read from the files "automatically" rather than assigning the filename as I do below.  
-
-# !!!
-
-# MVP II- automate the steps below rather than inserting filename manually as is done here, but for now place the filename in a column in the dfs after parsing, filename is placed in the first column.
-# !!!
-# Here
-# !!!
-"""
-df2016CA.insert(0, 'filename_16', '2016CA_ElementData.xml')
-
-df2017CA.insert(0, 'filename_17', '2017CA_ElementData.xml')
-
-df2018CA.insert(0, 'filename_18', '2018CA_ElementData.xml')
-
-df2019CA.insert(0, 'filename_19', '2019CA_ElementData.xml')
-
-df2020CA.insert(0, 'filename_20', '2020CA_ElementData.xml')
-
-df2021CA.insert(0, 'filename_21', '2021CA_ElementData.xml')
-
-df2022CA.insert(0, 'filename_22', '2022CA_ElementData.xml')
-"""
-
-# b_16 thru b_22 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_22 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
+# b_16 thru b_22 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the list of STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_22 variables will be larger in size (i.e. no. of rows) than the dataframes as will be seen below once the STRUCNUM not present in all years are removed.  
 
 # In other words a lot of what happens below all the way to the area where the slicing of the concatenated dataframe begins is all meant to insure that the STRUCNUM for each year match each other and that random bridges and their associated data aren't being included in the data I intend to analyze.
 
-# Directly below I need to take something from the df_nameToDF dictionary and make 
-
-import copy
-
-
-# b_np_wrapper is a variable meant to copy the original df_nameToDF dictionary and then use it for the purposes of making the variables consisting of the STRUCNUM column of each dataframe value in the dict and then convert that to a numpy array.  
-
-#b_np_wrapper = copy.deepcopy(df_nameToDF)
 
 # !!!
-# Here
+# MVP II: make a more elegant solution to these lines of code for the 
 # !!!
+
 b_16 = df2016CA['STRUCNUM'].to_numpy()
 
 b_17 = df2017CA['STRUCNUM'].to_numpy()
@@ -220,7 +195,7 @@ b_21 = df2021CA['STRUCNUM'].to_numpy()
 b_22 = df2022CA['STRUCNUM'].to_numpy()
 
 
-# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (denoted by STRUCNUM) that are common to all the years of data being analyzed (2017 - 2021 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 5 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that elemeent number (EN) each year- some years may include condition states associated with that element in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
+# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (an individual bridge is denoted by STRUCNUM) that are common to all the years of data being analyzed (2016 - 2022 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 7 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as a variable as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that element number (EN) each year- some years may include condition states associated with that element present for that bridge  in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
 
 
 
@@ -256,30 +231,47 @@ df2022CA
 
 # the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well *** I still need to explain to myself why this is necessary in order to avoid multiple entries of the same element for a single bridge.  
 
+""" the ...EPN.isnull() expressions below are required to merge the data properly while avoiding multiple entries of the same EN for each bridge  """
 
+"""
+column_name = 'EN'
+
+dataframes = [df.dropna(subset=[column_name]) for df in dataframes]
+"""
+
+"""
+null_checks = [df[column_name].isnull() for df in dataframes]
+
+print(null_checks[0])  # Null checks for Year 2016 STRUCNUM
+print(null_checks[1])  # Null checks for Year 2017 STRUCNUM
+print(null_checks[2])  # Null checks for Year 2018 STRUCNUM
+print(null_checks[3])  # Null checks for Year 2019 STRUCNUM
+print(null_checks[4])  # Null checks for Year 2020 STRUCNUM
+print(null_checks[5])  # Null checks for Year 2021 STRUCNUM
+print(null_checks[6])  # Null checks for Year 2022 STRUCNUM
+"""
 
 
 df2016CA=df2016CA[df2016CA.EPN.isnull()]
-
-# Drops the number of lines from 56275 to 48966
+# Drops the number of lines from 56275 to 50426
 
 df2017CA=df2017CA[df2017CA.EPN.isnull()]
-# Drops the number of lines from 75574 to 66481
+# Drops the number of lines from 75574 to 67593
 
 df2018CA=df2018CA[df2018CA.EPN.isnull()]
-# Drops the number of lines from 78832 to 66859
+# Drops the number of lines from 78832 to 70351
 
 df2019CA=df2019CA[df2019CA.EPN.isnull()]
-# Drops the number of lines from 82570 to 67318
+# Drops the number of lines from 82570 to 73470
 
 df2020CA=df2020CA[df2020CA.EPN.isnull()]
-# Drops the number of lines from 83627 to 67893
+# Drops the number of lines from 83627 to 74275
 
 df2021CA=df2021CA[df2021CA.EPN.isnull()]
-# Drops the number of lines from 83933 to 68184
+# Drops the number of lines from 83933 to 74585
 
 df2022CA=df2022CA[df2022CA.EPN.isnull()]
-# Drops the number of lines from 85926 to 68913
+# Drops the number of lines from 85926 to 75687
 
 
 # Determine the set of STRUCNUM common to all years observed.  
@@ -350,6 +342,8 @@ from array import *
 # Here
 # !!!
 
+# make lists of each set of strucnum to compare them.
+
 strucnum_2016_mod.tolist()
 
 strucnum_2017_mod.tolist()
@@ -403,17 +397,54 @@ else :
 
 # The nomenclature for these merges is to place the two digit year corresponding to the next smallest df number at the beginning of the variable name as the merges are made, i.e. in the manner that df20_21_22 is merged below after the larger dfs of df2022CA and df2021CA have been merged.
 
-df_merged = 
 
 
-df22_21 = pd.merge(df2022CA, df2021CA, suffixes=['_22', '_21'], on=['STRUCNUM','EN'])
+
+#!!!
+# Make the merging of the 7 dfs in one line starting below:
+#df_merged = 
+
+# df_final = ft.reduce(lambda left, right: pd.merge(left, right, on='name'), dfs)
+
+#df =  pd.merge(df2022CA, df2021CA, df2020CA, df2019CA, df2018CA, df2017CA, df2016CA,  on=['STRUCNUM','EN'])
+
+
+# !!!
+#https://www.statology.org/pandas-merge-multiple-dataframes/
+# look at link above to merge multiple dfs at once
+
+
+# dfs = [df2016CA, df2017CA, df2018CA, df2019CA]
+
+# df_final = reduce(lambda  left,right: pd.merge(left,right,on=['STRUCNUM'], how='outer'), dfs)
+
+
+# df_final 46204 lines long.
+
+# df191817 = df1918.merge(df_17, on = ['strucnum', 'EN'], how = 'left')
+
+# merged_df = pd.merge(df1, df2, on='ID').merge(df3, on='ID').merge(df4, on='ID')
+
+
+df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM','EN'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM','EN'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
+
+
+
+"""
+df22_21 = df2022CA.merge(df2021CA, suffixes=['_22', '_21'], on=['STRUCNUM','EN'])
 # pre merge the longest of the 2 dfs is 51033 lines long
 # Post merge the length is 50104 lines long
+# Switch to left merge: 51033
+
+
+end_time = time.time()
+execution_time = end_time - start_time
+print(f"Execution time: {execution_time} seconds")
 
 
 # The next longest is df2020CA at 50137 lines long
 
-df20_22_21 = pd.merge(df2020CA, df22_21, on=['STRUCNUM', 'EN'])
+df20_22_21 = df22_21.merge(df2020CA, on=['STRUCNUM', 'EN'])
 # pre merge the longest of the 2 dfs is df2021CA at 67758 lines long
 # Post merge the length of df20_22_21 is 49754 lines long
 
@@ -428,7 +459,7 @@ df20_22_21.rename(columns={'FHWAED':'FHWAED_20', 'STATE':'STATE_20', 'EPN': 'EPN
 
 # Of the remaining dfs df2019CA is longest at 49671 lines long
 
-df19_20_22_21 = pd.merge(df2019CA, df20_22_21, on=['STRUCNUM', 'EN'])
+df19_20_22_21 = df20_22_21.merge(df2019CA, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df19_20_22_21 is 48734 lines long
 
@@ -439,7 +470,7 @@ df19_20_22_21.rename(columns={'FHWAED':'FHWAED_19', 'STATE':'STATE_19', 'EPN': '
 
 # Merge of df2018CA into the already merged years  2019 2020 2021 and 2022
 
-df18_19_20_22_21 = pd.merge(df2018CA, df19_20_22_21, on=['STRUCNUM', 'EN'])
+df18_19_20_22_21 = df19_20_22_21.merge(df2018CA, on=['STRUCNUM', 'EN'])
 
 # Post merge the length of df18_19_20_22_21 is 47978 lines long
 
@@ -463,7 +494,14 @@ df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM',
 
 # Change of suffixes post merge
 
+
+
 df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
+"""
+
+df16_17_18_19_20_21_22.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
+
+# Find out what happens to the EN column when the slices are made!! (06/15/2023)
 
 # Original df16_17_18_19_20_22_21 length = 46204 lines long
 # Use the expression below as a starting point for 11/27/2022
@@ -547,7 +585,7 @@ df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16',
 # !!!
 # Not sure 
 
-
+"""
 # for year 2016
 df16 = df16_17_18_19_20_22_21.iloc[:,[0,3,4,6,7,8,9,10]]
 
@@ -570,7 +608,47 @@ df22 = df16_17_18_19_20_22_21.iloc[:,[47,3,4,51,52,53,54,55]]
 
 # for year 2021
 df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
+"""
 
+
+
+# for year 2016
+#df16 = df16_17_18_19_20_22_21.iloc[:,[2,3,5,6,7,8,9,10]]
+
+# for year 2017
+#df17 = df16_17_18_19_20_22_21.iloc[:,[11,3,4,15,16,17,18,19]]
+
+# for year 2018
+#df18 = df16_17_18_19_20_22_21.iloc[:,[20,3,4,24,25,26,27,28]]
+
+# for year 2019
+#df19 = df16_17_18_19_20_22_21.iloc[:,[29,3,4,33,34,35,36,37]]
+
+# for year 2020
+#df20 = df16_17_18_19_20_22_21.iloc[:,[38,3,4,42,43,44,45,46]]
+
+# !!!
+
+# for year 2022
+#df22 = df16_17_18_19_20_22_21.iloc[:,[47,3,4,51,52,53,54,55]]
+
+# for year 2021
+#df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
+
+
+df16 = df16_17_18_19_20_21_22.iloc[:,[2,3,59,60,61,62,63,64]]
+
+df17 = df16_17_18_19_20_21_22.iloc[:,[2,3,50,51,52,53,54,55]]
+
+df18 = df16_17_18_19_20_21_22.iloc[:,[2,3,41,42,43,44,45,46]]
+
+df19 = df16_17_18_19_20_21_22.iloc[:,[2,3,32,33,34,35,36,37]]
+
+df20 = df16_17_18_19_20_21_22.iloc[:,[2,3,23,24,25,26,27,28]]
+
+df21 = df16_17_18_19_20_21_22.iloc[:,[2,3,14,15,16,17,18,19]]
+
+df22 = df16_17_18_19_20_21_22.iloc[:,[2,3,5,6,7,8,9,10]]
 
 
 # for year 2018
@@ -589,8 +667,8 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 #df19 = df18_17_21_20_19.iloc[:,[38,3,4,42,43,44,45,46]]
 
 
-# Change the column headings of the first df:
-df16.columns = ['filename', 'STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']
+# Change the column headings of the first df- to avoid any confusion of the different suffixes associated with the different years:
+df16.columns = ['STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4',  'filename']
 
 
 # concatenate the dataframes to one another starting with year 2017
@@ -637,6 +715,9 @@ for k, v in nameToDF.items():
 
 # !!!
 
+# Use the key of a dictionary as the criteria to select rows from a dataframe and set the resultant rows equal to the value corresponding to the key
+
+"""
 el_names = {'12': 'deck_rc',
             '13': 'deck_pc',
    	        '15': 'topFlg_pc',
@@ -761,9 +842,192 @@ el_names = {'12': 'deck_rc',
             '520': 'rsps',
             '521': 'cpc',
             '522': 'deck_memb'}
+"""
+
 
 """ 06/07/22 """
 
+
+# Get unique element numbers (el_numbers) from the 'EN' column
+el_numbers = df_data['EN'].unique()
+
+# Create an empty dictionary to store the smaller dataframes
+element_dfs = {}
+
+# Iterate over the element numbers and create smaller dataframes
+for el_number in el_numbers:
+    # Use getattr to dynamically create a dataframe for each group
+    element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
+    element_dfs[el_number] = element_df
+
+#criteria dict, will need to add the rest of the el_names to the dict, lots of typing to do there, don't want to do all that if this doesn't work.  
+"""
+el_names = {
+ 'deck_rc':	'12',
+ 'deck_pc': '13',
+ 'topFlg_pc': '15',
+ 'topFlg_rc':'16',
+ 'stDeck_og':'28',
+ 'stDeck_cfg':'29'}
+"""
+
+
+"""
+# Create dataframes based on criteria
+element_dfs = {}
+for name, el_name in el_names.items():
+    element_dfs[el_name] = df_data[df_data['EN'] == el_name].copy()
+    
+#getattr(element_df, '12', None)
+
+# Output the created dataframes
+print(el_names['deck_rc'])
+print(el_names['deck_pc'])
+print(el_names['topFlg_pc'])
+"""
+
+
+
+"""
+ 'stDeck_corrOrtho':	"       	    '30'"
+ 'deck_timb':	            '31'
+ 'slab_rc',	"            	'38'"
+ 'slab_pc',	"            	'39'"
+ 'slab_timb',	"            	'54'"
+ 'deck_other',	"            	'60'"
+ 'slab_other',	"            	'65'"
+ 'cwBg_steel',	"            	'102'"
+ 'cwBg_pc',	"            	'103'"
+ 'cwBg_rc',	"            	'105'"
+ 'cwBg_other',	            '106'
+ 'oGb_steel',	            '107'
+ 'oGb_pc',	            '109'
+ 'oGb_rc',	            '110'
+ 'oGb_timb',	            '111'
+ 'oGb_other',	            '112'
+ 'stringer_steel',	            '113'
+ 'stringer_pc',	            '115'
+ 'stringer_rc',	            '116'
+ 'stringer_timb',	            '117'
+ 'stringer_other',	            '118'
+ 'truss_steel',	            '120'
+ 'truss_timb',	            '135'
+ 'truss_other',	            '136'
+ 'arch_steel',	            '141'
+ 'arch_other',	            '142'
+ 'arch_pc',	            '143'
+ 'arch_rc',	            '144'
+ 'arch_masonry',	            '145'
+ 'arch_timb',	            '146'
+ 'cbl_mSt',	            '147'
+ 'cbl_secSt',	            '148'
+ 'cbl_secOthr',	            '149'
+ 'flrB_steel',	            '152'
+ 'flrB_pc',	            '154'
+ 'flrB_rc',	            '155'
+ 'flrB_timb',	            '156'
+ 'flrB_other',	            '157'
+ 'spph',	            '161'
+ 'sgp',	            '162'
+ 'rrcf',	            '170'
+ 'miscSS',	            '171'
+ 'eqrcII',	            '180'
+ 'eqrcC1',	            '181'
+ 'eqrc_Othr',	            '182'
+ 'col_st',	            '202'
+ 'col_othr',	"            	'203'"
+ 'col_pc',	"            	'204'"
+ 'col_rc',	"            	'205'"
+ 'col_timb',	            '206'
+ 'twr_st',	            '207'
+ 'tres_timb',	            '208'
+ 'pw_rc',	            '210'
+ 'pw_othr',	            '211'
+ 'pw_timb',	            '212'
+ 'pw_mas',	            '213'
+ 'abmt_rc',	"            	'215'"
+ 'abmt_timb',	"            	'216'"
+ 'abmt_mas',	"            	'217'"
+ 'abmt_othr',	"            	'218'"
+ 'abmt_steel',	"            	'219'"
+ 'pcf_rc',	            '220'
+ 'pile_st',	            '225'
+ 'pile_pc',	            '226'
+ 'pile_rc',	            '227'
+ 'pile_timb',	            '228'
+ 'pile_othr',	            '229'
+ 'pc_steel',	            '231'
+ 'pc_PrConc',	"            	'233'"
+ 'pc_rc',	"            	'234'"
+ 'pc_timb',	            '235'
+ 'pc_othr',	            '236'
+ 'culv_st',	            '240'
+ 'culv_rc',	            '241'
+ 'culv_timb',	            '242'
+ 'culv_othr',	            '243'
+ 'culv_mas',	            '244'
+ 'culv_pc',	            '245'
+ 'tunnel',	            '250'
+ 'pile_castSh',	            '251'
+ 'pile_castDr',	            '252'
+ 'cSh_stFH',	            '254'
+ 'cSh_stPH',	            '255'
+ 'slopeScP',	            '256'
+ 'joint_sse',	"           	'300'"
+ 'joint_ps',	"           	'301'"
+ 'joint_cs',	"           	'302'"
+ 'joint_aws',	"           	'303'"
+ 'joint_oe',	            '304'
+ 'joint_awo',	            '305'
+ 'joint_othr',	            '306'
+ 'joint_ap',	            '307'
+ 'joint_ssp',	            '308'
+ 'joint_sf',	            '309'
+ 'brg_el',	            '310'
+ 'brg_mov',	            '311'
+ 'brg_ec',	            '312'
+ 'brg_fxd',	            '313'
+ 'brg_pot',	            '314'
+ 'brg_dsk',	            '315'
+ 'brg_othr',	            '316'
+ 'appSl_pc',	"            	'320'"
+ 'appSl_rc',	            '321'
+ 'br_m',	"            	'330'"
+ 'br_rc',	            '331'
+ 'br_timb',	            '332'
+ 'br_othr',	            '333'
+ 'br_mas',	            '334'
+ 'dws_ac',	"            	'510'"
+ 'dws_cp',	"            	'511'"
+ 'dws_ep',	"            	'512'"
+ 'dws_timb',	            '513'
+ 'spc_p',	            '515'
+ 'spc_galv',	            '516'
+ 'spc_ws',	            '517'
+ 'rsps',	            '520'
+ 'cpc',	            '521'
+ 'deck_memb'	            '522'
+"""
+
+
+
+"""
+criteria_dict = {
+    'df1': 'criteria1',
+    'df2': 'criteria2',
+    'df3': 'criteria3'
+}
+
+# Create dataframes based on criteria
+dataframes_dict = {}
+for name, criteria in criteria_dict.items():
+    dataframes_dict[name] = df_large[df_large['ColumnName'] == criteria].copy()
+
+# Output the created dataframes
+print(dataframes_dict['df1'])
+print(dataframes_dict['df2'])
+print(dataframes_dict['df3'])
+"""
 
 # Make a dictionary of the keys and values of the bridge element numbers (EN) and the name I intend to give to the variable that will hold the number observations of that EN for that year using a dictionary comprehension.
 
@@ -786,6 +1050,38 @@ element_df = df_names() # element_df will hold all the variables (which will als
 
 # Get the unique set of all EN common to all years being obsesrved/inventoried.  
 elements = df_data['EN'].unique()
+
+
+
+# !!!
+# create empty list for dataframes
+dataframes = []
+ 
+# append datasets into the list
+for i in range(len(df_names)):
+    temp_df = parse_XML(files[i], df_cols)
+    dataframes.append(temp_df)  # creates a list of dataframes with the contents of the xml files read into them.
+ 
+# place the filename from which data for the particular dataframe is read in as a new column in each dataframe.    
+for z in range(len(files)):
+    dataframes[z]['filename'] = files[z]
+
+# !!!
+
+# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
+
+# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
+    
+
+# !!!
+# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
+   
+ 
+# df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
+ 
+df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}  
+# !!!
+
 
 
 for element in elements:
