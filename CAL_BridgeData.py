@@ -119,6 +119,42 @@ for i in range(len(df_names)):
 for z in range(len(files)):
     dataframes[z]['filename'] = files[z]
 
+for df in dataframes:
+    # Print the data types of the columns
+    print("DataFrame:", df)
+    print("Column Data Types:")
+    print(df.dtypes)
+    print()
+
+
+
+# Define the desired data types for conversion
+desired_data_types = {
+'FHWAED': 'str',
+'STATE': 'str',
+'STRUCNUM': 'str',
+'EN': 'str',
+'EPN': 'str',
+'TOTALQTY': 'float',
+'CS1': 'float',
+'CS2': 'float',
+'CS3': 'float',
+'CS4': 'float',
+'filename': 'str'
+}
+
+
+
+# Iterate over the dataframes
+for df in dataframes:
+    # Convert data types of columns
+    df = df.astype(desired_data_types)
+
+    # Print the updated DataFrame with converted data types
+    print(df)
+    print()
+
+
 # !!!
 
 # MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
@@ -427,7 +463,12 @@ else :
 
 
 df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM','EN'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM','EN'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
+6
 
+# MVP II: Merge on only STRUCNUM - get a larger dataset
+"""
+df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM'), suffixes=('_17', '_16'))
+"""
 
 
 """
@@ -848,6 +889,9 @@ el_names = {'12': 'deck_rc',
 """ 06/07/22 """
 
 
+
+# Filter the rows out of the df_data dataframe based on the largest possible data set where each STRUCNUM has all the EN attached to it observed over all years being considered- i.e. the set of EN attached to a particular STRUCNUM is the set of EN not necessarily attached to or observed in one particular year- but the most EN observed over all the years of data being considered (eliminating repeats).
+
 # Get unique element numbers (el_numbers) from the 'EN' column
 el_numbers = df_data['EN'].unique()
 
@@ -860,6 +904,15 @@ for el_number in el_numbers:
     element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
     element_dfs[el_number] = element_df
 
+    
+# !!! 
+
+# 06/17/2023: To line of code above: element_dfs[el_number] = element_df, the code is working i.e. the dfs are parsed in correctly, the merge of the respective years of the dataframes are occurring correctly, 
+
+# Come up with the max number of bridges that are common to all years (first merge??)
+# Come up with the highest total number of possible EN for all STRUCNUM
+
+
 #criteria dict, will need to add the rest of the el_names to the dict, lots of typing to do there, don't want to do all that if this doesn't work.  
 """
 el_names = {
@@ -868,27 +921,7 @@ el_names = {
  'topFlg_pc': '15',
  'topFlg_rc':'16',
  'stDeck_og':'28',
- 'stDeck_cfg':'29'}
-"""
-
-
-"""
-# Create dataframes based on criteria
-element_dfs = {}
-for name, el_name in el_names.items():
-    element_dfs[el_name] = df_data[df_data['EN'] == el_name].copy()
-    
-#getattr(element_df, '12', None)
-
-# Output the created dataframes
-print(el_names['deck_rc'])
-print(el_names['deck_pc'])
-print(el_names['topFlg_pc'])
-"""
-
-
-
-"""
+ 'stDeck_cfg':'29'
  'stDeck_corrOrtho':	"       	    '30'"
  'deck_timb':	            '31'
  'slab_rc',	"            	'38'"
@@ -1007,26 +1040,7 @@ print(el_names['topFlg_pc'])
  'rsps',	            '520'
  'cpc',	            '521'
  'deck_memb'	            '522'
-"""
-
-
-
-"""
-criteria_dict = {
-    'df1': 'criteria1',
-    'df2': 'criteria2',
-    'df3': 'criteria3'
-}
-
-# Create dataframes based on criteria
-dataframes_dict = {}
-for name, criteria in criteria_dict.items():
-    dataframes_dict[name] = df_large[df_large['ColumnName'] == criteria].copy()
-
-# Output the created dataframes
-print(dataframes_dict['df1'])
-print(dataframes_dict['df2'])
-print(dataframes_dict['df3'])
+ }
 """
 
 # Make a dictionary of the keys and values of the bridge element numbers (EN) and the name I intend to give to the variable that will hold the number observations of that EN for that year using a dictionary comprehension.
