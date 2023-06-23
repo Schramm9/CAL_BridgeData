@@ -904,7 +904,9 @@ for el_number in el_numbers:
     element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
     element_dfs[el_number] = element_df
 
-    
+
+
+
 # !!! 
 
 # 06/17/2023: To line of code above: element_dfs[el_number] = element_df, the code is working i.e. the dfs are parsed in correctly, the merge of the respective years of the dataframes are occurring correctly, 
@@ -912,8 +914,6 @@ for el_number in el_numbers:
 # Come up with the max number of bridges that are common to all years (first merge??)
 # Come up with the highest total number of possible EN for all STRUCNUM
 
-
-#criteria dict, will need to add the rest of the el_names to the dict, lots of typing to do there, don't want to do all that if this doesn't work.  
 """
 el_names = {
  'deck_rc':	'12',
@@ -1043,45 +1043,6 @@ el_names = {
  }
 """
 
-# Make a dictionary of the keys and values of the bridge element numbers (EN) and the name I intend to give to the variable that will hold the number observations of that EN for that year using a dictionary comprehension.
-
-#qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()}
-
-
-
-
-
-# Create the means to make the individual dataframes for each Element Number (EN) using getattr().
-
-# !!!
-# Not sure
-
-
-class df_names:
-    pass
-
-element_df = df_names() # element_df will hold all the variables (which will also be variables in the form of dataframes) to be created associated with the different bridge elements or ENs.  
-
-# Get the unique set of all EN common to all years being obsesrved/inventoried.  
-elements = df_data['EN'].unique()
-
-
-
-# !!!
-# create empty list for dataframes
-dataframes = []
- 
-# append datasets into the list
-for i in range(len(df_names)):
-    temp_df = parse_XML(files[i], df_cols)
-    dataframes.append(temp_df)  # creates a list of dataframes with the contents of the xml files read into them.
- 
-# place the filename from which data for the particular dataframe is read in as a new column in each dataframe.    
-for z in range(len(files)):
-    dataframes[z]['filename'] = files[z]
-
-# !!!
-
 # MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
 
 # If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
@@ -1090,30 +1051,9 @@ for z in range(len(files)):
 # !!!
 # MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
    
- 
+
 # df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
  
-df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}  
-# !!!
-
-
-
-for element in elements:
-    
-    setattr(element_df, f"{element}", df_data[df_data['EN']==element].reset_index(drop=True))
-    
-for element in elements: #very important to keep the two for loops indented to the same spot! Second loop is not a nested loop!
-        print(getattr(element_df, f"{element}"))
-
-
-
-# MVP II 
-# dictionary of all the bridge elements possible in any bridge.  
-# plan to use the dict below as a means to create dataframes for the element numbers (ENs) present in the concatenated dataframe using a loop if possible rather than just using getattr for all the numbers in the dict and possibly making empty dataframes in the process.
-# Although doing this may require using glob (global variables) which from my investigation of the practice seems like a poor attempt at a solution.  
-
-# !!! This may not be necessary given the syntax of the getattr() statement, can return the None object and eliminate the need to only create dataframes for the ENs that are present in the observations.  If NoneType object is returned the program can continue on to the next EN without throwing an error- there will be a variable of Type = NoneType in the output.  
-# !!!
 
 """
 el_names = {'12': 'deck_rc',
@@ -1242,36 +1182,6 @@ el_names = {'12': 'deck_rc',
             '522': 'deck_memb'
     }
 """
-# MVP II: the 3 commented lines below are an attempt to make the process of creating the different DataFrames for each bridge element more "automatic" but I have not worked out those details as of yet.  The brdg_elements dict starts out as a dict of empty DataFrames with the element id number from the FHWA as the key to each empty DataFrame- the idea is to make the individual DataFrames appear in the dict as their values.  Not sure how to do that.   
-
-# brdg_elements = {}
-# for idnum in el_names:
-	# brdg_elements[idnum] = pd.DataFrame()
-    
-
-    
-    
-#for varnames in brdg_elements:
-   #brdg_elements[] = getattr(element_df, el_names.keys(), None)
-    
-#  idnum comes out as 522 in the variable explorer, i.e. the last number in the original dict.
-
-
-# Create dataframes for each individual EN to perform regression analysis for each possible part of a bridge
-
-""" user_contract = ['ZNZ6','TNZ6','ZBZ6']
-data = [[1,2,3],[4,5,6],[7,8,9]]
-dictionary = dict(zip(user_contract, data))
-print(dictionary)
-"""
-""" 
-Make the element dataframe be the variable of the form deck_rc, deck_pc, etc. 
-
-"""
-
-# !!!
-# Here
-# !!!
 
 el_names = {'12': 'deck_rc',
             '13': 'deck_pc',
@@ -1292,7 +1202,7 @@ el_names = {'12': 'deck_rc',
             '106': 'cwBg_other',
             '107': 'oGb_steel',
             '109': 'oGb_pc',
-+            '110': 'oGb_rc',
+            '110': 'oGb_rc',
             '111': 'oGb_timb',
             '112': 'oGb_other',
             '113': 'stringer_steel',
@@ -1399,17 +1309,7 @@ el_names = {'12': 'deck_rc',
             '522': 'deck_memb'}
 
 
-
-
-
-
-# 02/06/23 start here with the zip statement:
-    
-    
-# !!!
-# Here
-# !!!    
-
+"""
     # Deck and slabs, 13 elements
 
 deck_rc = getattr(element_df, '12', None)
@@ -1695,6 +1595,8 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
     # End Wearing Surfaces
     
     # End Elements
+
+"""
     
 # Rationale for the replacement of data for deck_rc is that the subset of data will consist of all bridges that have observations in all years AND at least one EN observation in one year- thus replacing the the EN observations for years where no data is present but at least one observation is present in at least one year for a bridge.      
 
@@ -1716,6 +1618,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
+
+import re
 
 sns.set(style="whitegrid", color_codes=True)
 
@@ -1743,6 +1647,168 @@ sns.set(style="whitegrid", color_codes=True)
 
 # !!!
 # Here is where the abmt_rc df is important to look at, rather than create more variables and make things hard to follow I'm going to adjust the equation below so that the CS under review is different while looking for a line of best fit in the different condition states.  
+
+# !!!
+
+# Having gotten the dictionary of dataframes known as element_dfs to hold the dataframes of each individual bridge element found in the data, I need to make the dataframes into a form that will allow for creation of data visualization.
+
+
+
+
+# begin year extract procedure
+
+def extract_year(df, filename_column, year_column):
+    df[year_column] = df[filename_column].str.extract(r'(\d+)').astype(int)
+    return df
+
+def process_dictionary_of_dataframes(element_dfs, filename_column, year_column):
+    processed_dataframes = {}
+    for key, df in element_dfs.items():
+        processed_df = extract_year(df, filename_column, year_column)
+        processed_dataframes[key] = processed_df
+    return processed_dataframes
+
+processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'filename', 'Year')
+
+# end year extract procedure
+
+# begin time column procedure
+
+def create_even_time_column(df, year_column, time_column):
+    df[time_column] = pd.to_datetime(df[year_column], format='%Y')
+    year_counts = df[year_column].value_counts()
+    freq = pd.to_timedelta('1Y') / year_counts.max()
+    df[time_column] += pd.to_timedelta(df.groupby(year_column).cumcount() * freq, unit='D')
+    return df
+
+def process_dictionary_of_dataframes(element_dfs, year_column, time_column):
+    processed_dataframes = {}
+    for key, df in element_dfs.items():
+        processed_df = create_even_time_column(df, year_column, time_column)
+        processed_dataframes[key] = processed_df
+    return processed_dataframes
+
+
+processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'Year', 'Time')
+
+# Print the processed DataFrames
+for key, df in processed_dict_of_dataframes.items():
+    print(f"{key}:\n{df}\n")
+
+# end time column procedure
+
+
+"""
+
+import pandas as pd
+
+def convert_year_to_datetime(df, year_column, datetime_column):
+    try:
+        df[datetime_column] = pd.to_datetime(df[year_column], format='%Y')
+        year_counts = df[year_column].value_counts()
+        freq = pd.to_timedelta('1Y') / year_counts
+        df[datetime_column] += pd.to_timedelta(df.groupby(year_column).cumcount() * freq, unit='D')
+    except Exception as e:
+        print(f"Error converting year column to datetime: {e}")
+    return df
+
+def process_dictionary_of_dataframes(dict_of_dataframes, year_column, datetime_column):
+    processed_dataframes = {}
+    for key, df in dict_of_dataframes.items():
+        processed_df = convert_year_to_datetime(df, year_column, datetime_column)
+        processed_dataframes[key] = processed_df
+    return processed_dataframes
+
+# Example usage
+df1 = pd.DataFrame({'Value': [1, 2, 3, 4, 5],
+                    'Year': [2020, 2020, 2021, 2021, 2021]})
+
+df2 = pd.DataFrame({'Measurement': [10, 20, 30],
+                    'Year': [2021, 2022, 2022]})
+
+df3 = pd.DataFrame({'Observation': ['A', 'B', 'C', 'D'],
+                    'Year': [2020, 2020, 2021, 2021]})
+
+dict_of_dataframes = {'df1': df1, 'df2': df2, 'df3': df3}
+
+processed_dict_of_dataframes = process_dictionary_of_dataframes(dict_of_dataframes, 'Year', 'Datetime')
+
+# Print the processed DataFrames
+for key, df in processed_dict_of_dataframes.items():
+    print(f"{key}:\n{df}\n")
+
+
+"""
+"""
+def create_time_range(year_column, count):
+    start_date = datetime(year_column, 1, 1)
+    end_date = datetime(year_column, 12, 31)
+    duration = (end_date - start_date) / count
+    time_range = pd.date_range(start=start_date, end=end_date, freq=duration)
+    return time_range
+
+df['time_range'] = df.apply(lambda row: create_time_range(row['Year'], row['count']), axis=1)
+
+
+
+for key, df in processed_dict_of_dataframes.items():
+    df['time_range'] = df.apply(lambda row: create_time_range(row['Year'], row['count']), axis=1)
+"""
+
+"""
+def convert_year_to_datetime(df, year_column, datetime_column):
+    df[datetime_column] = pd.to_datetime(df[year_column], format='%Y')
+    year_counts = df[year_column].value_counts()
+    freq = pd.to_timedelta('1Y') / year_counts
+    df[datetime_column] += pd.to_timedelta(df.groupby(year_column).cumcount() * freq, unit='D')
+    return df
+
+def process_dictionary_of_dataframes(element_dfs, year_column, datetime_column):
+    processed_dataframes = {}
+    for key, df in element_dfs.items():
+        processed_df = convert_year_to_datetime(df, year_column, datetime_column)
+        processed_dataframes[key] = processed_df
+    return processed_dataframes
+
+processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'Year', 'Datetime')
+
+# Print the processed DataFrames
+for key, df in processed_dict_of_dataframes.items():
+    print(f"{key}:\n{df}\n")
+"""    
+
+
+"""
+def create_datetime_column(df, filename_column):
+    # Extract the numerical portion from the 'filename' column and convert to integer
+    df['Year'] = df[filename_column].str.extract(r'(\d+)').astype(int)
+    
+    # Calculate the year span based on the count of rows for each year
+    year_counts = df['Year'].value_counts()
+    year_span = (365 / year_counts).astype(int)
+    
+    # Create the datetime column based on the year and row number
+    df['Datetime'] = pd.to_datetime(df.groupby('Year').cumcount() * year_span + 1, unit='D', origin='start')
+    
+    # Create the datetime column based on the year and row number
+    df['Datetime'] = df.groupby('Year').cumcount() * pd.to_timedelta(year_span, unit='D') + pd.to_datetime(df['Year'], format='%Y')
+    
+
+    return df
+
+def process_dictionary_of_dataframes(element_dfs, filename_column):
+    processed_dataframes = {}
+    for key, df in element_dfs.items():
+        processed_df = create_datetime_column(df, filename_column)
+        processed_dataframes[key] = processed_df
+    return processed_dataframes
+
+processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'filename')
+
+# Print the processed DataFrames
+for key, df in processed_dict_of_dataframes.items():
+    print(f"{key}:\n{df}\n")
+"""
 
 abmt_rc = abmt_rc.loc[~((abmt_rc['CS2'] == 0.0) & (abmt_rc['CS1'] + abmt_rc['CS3'] + abmt_rc['CS4'] == 1.0)),:]
 
