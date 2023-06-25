@@ -91,7 +91,7 @@ print(files)
 
 df_names = ["df" + i.split('_', 1)[0] for i in files]
 
-#{df_name: files for df_name in  df_names}
+
 
 root= "./CAL_BridgeData"
   #container for the various xmls contained in the directory
@@ -100,14 +100,28 @@ root= "./CAL_BridgeData"
 
 
 # collect xml filenames and paths 
+
 for dirpath, dirnames, filenames in os.walk(root):
     for file in files:
         files.append(dirpath + '\\' + file)
+        
+# end collection of xml filenames and paths
+
+
+
+# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
+
+# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
+    
 
 # Hard coded, unfortunately, possibly look for a way to find columns from xml, probably a fairly common thing, search it.   Or make it part of MVP II.
+
 df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
 
+
+
 # create empty list for dataframes
+
 dataframes = []
  
 # append datasets into the list
@@ -127,6 +141,8 @@ for df in dataframes:
     print()
 
 
+
+# Begin data type conversion
 
 # Define the desired data types for conversion
 desired_data_types = {
@@ -154,13 +170,10 @@ for df in dataframes:
     print(df)
     print()
 
+# End data type conversion
 
 # !!!
 
-# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
-
-# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
-    
 
 # !!!
 # MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
@@ -177,6 +190,9 @@ df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
 
 
 bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
+
+# End determination of number of unique bridges
+
 
 """
 df2016CA.groupby('STRUCNUM').count() 
@@ -310,12 +326,14 @@ df2022CA=df2022CA[df2022CA.EPN.isnull()]
 # Drops the number of lines from 85926 to 75687
 
 
-# Determine the set of STRUCNUM common to all years observed.  
+# Begin determine the set of STRUCNUM common to all years observed.  
 
 strucnum_in_all = list(set.intersection(*map(set, [b_16, b_17, b_18, b_19, b_20, b_21, b_22])))
 # Sort the list so its contents will look more familiar to the user, i.e. be in numerical order.
 strucnum_in_all = sorted(strucnum_in_all)
 # Results in 9829 bridges starting with STRUCNUM = 01 0002 & ending with STRUCNUM = 58C0026.
+
+# End determine set of strucnum_in_all 
 
 
 # Remove STRUCNUM not present in all dfs
@@ -395,6 +413,7 @@ strucnum_2021_mod.tolist()
 strucnum_2022_mod.tolist()
 
 
+# check that the STRUCNUM being pulled from each year are the same
 
 # Is this the list of bridges common to all years that I would use to make the dfs that have the missing data I could replace?  
 
@@ -462,13 +481,18 @@ else :
 # merged_df = pd.merge(df1, df2, on='ID').merge(df3, on='ID').merge(df4, on='ID')
 
 
+# Merge the dataframes for each year.
+
 df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM','EN'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM','EN'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
 6
 
-# MVP II: Merge on only STRUCNUM - get a larger dataset
+# MVP II: Merge on only STRUCNUM - get a larger dataset and use Python to replace missing data.  Was having difficulty with the size of the dataset when merging only on STRUCNUM.  
+
 """
 df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM'), suffixes=('_17', '_16'))
 """
+
+# End merge of dataframes for each year.  
 
 
 """
@@ -677,6 +701,8 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 #df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 
 
+# Begin slicing of df_16_17_18_19_20_21_22 dataframe
+
 df16 = df16_17_18_19_20_21_22.iloc[:,[2,3,59,60,61,62,63,64]]
 
 df17 = df16_17_18_19_20_21_22.iloc[:,[2,3,50,51,52,53,54,55]]
@@ -690,6 +716,8 @@ df20 = df16_17_18_19_20_21_22.iloc[:,[2,3,23,24,25,26,27,28]]
 df21 = df16_17_18_19_20_21_22.iloc[:,[2,3,14,15,16,17,18,19]]
 
 df22 = df16_17_18_19_20_21_22.iloc[:,[2,3,5,6,7,8,9,10]]
+
+# End slicing of df_16_17_18_19_20_21_22 dataframe
 
 
 # for year 2018
@@ -712,10 +740,13 @@ df22 = df16_17_18_19_20_21_22.iloc[:,[2,3,5,6,7,8,9,10]]
 df16.columns = ['STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4',  'filename']
 
 
+# Begin create df_data dataframe
 # concatenate the dataframes to one another starting with year 2017
 # The dataframe holding all the years in order will be called df_data
 
 df_data =pd.DataFrame(np.concatenate([df16.values, df17.values, df18.values, df19.values, df20.values, df21.values, df22.values], axis=0), columns=df16.columns)
+
+# End create df_data dataframe
 
 # !!!
 
@@ -892,6 +923,8 @@ el_names = {'12': 'deck_rc',
 
 # Filter the rows out of the df_data dataframe based on the largest possible data set where each STRUCNUM has all the EN attached to it observed over all years being considered- i.e. the set of EN attached to a particular STRUCNUM is the set of EN not necessarily attached to or observed in one particular year- but the most EN observed over all the years of data being considered (eliminating repeats).
 
+# Begin filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
+
 # Get unique element numbers (el_numbers) from the 'EN' column
 el_numbers = df_data['EN'].unique()
 
@@ -903,6 +936,8 @@ for el_number in el_numbers:
     # Use getattr to dynamically create a dataframe for each group
     element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
     element_dfs[el_number] = element_df
+
+# End filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
 
 
 
@@ -1618,6 +1653,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
+import warnings
 
 import re
 
@@ -1672,6 +1708,7 @@ processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'fi
 
 # end year extract procedure
 
+
 # begin time column procedure
 
 def create_even_time_column(df, year_column, time_column):
@@ -1696,6 +1733,42 @@ for key, df in processed_dict_of_dataframes.items():
     print(f"{key}:\n{df}\n")
 
 # end time column procedure
+
+
+# Begin data visualization procedure
+
+# Plot the data in scatter plot form, the line of best fit, the equation for the line of best fit in the legend of the plot, and print the warning returned if one is raised
+
+def make_plots(processed_dict_of_dataframes, x_column, y_column):
+    fig, axes = plt.subplots(nrows=len(processed_dict_of_dataframes), figsize=(8, 6 * len(processed_dict_of_dataframes)))
+
+    for i, (key, df) in enumerate(processed_dict_of_dataframes.items()):
+        ax = axes[i]
+        x = df[x_column].dt.strftime('%j').astype(int)  # Convert datetime to ordinal        
+        y = df[y_column]
+
+        # Scattered data
+        ax.scatter(x, y, label= 'Scattered Data')
+
+        # Best fit line
+        coefficients = np.polyfit(x, y, 1)
+        line = np.poly1d(coefficients)
+        ax.plot(x, line(x), color= 'red', label= f'Best Fit Line: {line}')
+
+        ax.set_xlabel(x_column)
+        ax.set_ylabel(y_column)
+        ax.set_title(key)
+        
+        ax.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+make_plots(processed_dict_of_dataframes, 'Time', 'CS1')
+
+# End data visualization procedure
+
+
 
 
 """
