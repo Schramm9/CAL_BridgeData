@@ -40,6 +40,12 @@ import matplotlib.ticker as ticker
 
 # Read in the XML files as they were downloaded from the FHWA.  
 
+"""Thanks to Roberto Preste Author From XML to Pandas dataframes,
+from xtree ... to return out_df
+https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
+    """
+
+
 def parse_XML(xml_file, df_cols): 
     """Thanks to Roberto Preste Author From XML to Pandas dataframes,
     from xtree ... to return out_df
@@ -68,7 +74,6 @@ def parse_XML(xml_file, df_cols):
 
 """End Roberto Preste code From XML to Pandas dataframes,
     from xtree ... to return out_df
-
     https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
 """
 
@@ -114,6 +119,7 @@ for dirpath, dirnames, filenames in os.walk(root):
 # If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
     
 
+
 # Hard coded, unfortunately, possibly look for a way to find columns from xml, probably a fairly common thing, search it.   Or make it part of MVP II.
 
 df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
@@ -146,11 +152,9 @@ for df in dataframes:
 
 # Define the desired data types for conversion
 desired_data_types = {
-'FHWAED': 'str',
 'STATE': 'str',
 'STRUCNUM': 'str',
 'EN': 'str',
-'EPN': 'str',
 'TOTALQTY': 'float',
 'CS1': 'float',
 'CS2': 'float',
@@ -1718,7 +1722,7 @@ def create_even_time_column(df, year_column, time_column):
     df[time_column] += pd.to_timedelta(df.groupby(year_column).cumcount() * freq, unit='D')
     return df
 
-def process_dictionary_of_dataframes(element_dfs, year_column, time_column):
+def insert_time_column_to_dict(element_dfs, year_column, time_column):
     processed_dataframes = {}
     for key, df in element_dfs.items():
         processed_df = create_even_time_column(df, year_column, time_column)
@@ -1726,7 +1730,7 @@ def process_dictionary_of_dataframes(element_dfs, year_column, time_column):
     return processed_dataframes
 
 
-processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'Year', 'Time')
+processed_dict_of_dataframes = insert_time_column_to_dict(element_dfs, 'Year', 'Time')
 
 # Print the processed DataFrames
 for key, df in processed_dict_of_dataframes.items():
@@ -1735,40 +1739,310 @@ for key, df in processed_dict_of_dataframes.items():
 # end time column procedure
 
 
+
+
+
+# Data visualization prior to further preprocessing of data
+"""
+for key, df in processed_dict_of_dataframes.items():
+    min_timestamp = df['Time'].min()
+    df['Time_relative'] = (df['Time'] - min_timestamp).dt.total_seconds()
+    
+    sns.regplot(x='Time_relative', y='CS1', data=df, label=key)
+
+# Add labels and legend
+plt.xlabel('Time')
+plt.ylabel('CS1')
+plt.legend()
+
+# Show the plot
+plt.show()
+"""
+
+
+
+
+
+
+# Begin eliminate outliers procedure
+
+
+# Columns to consider elimination of outliers
+elim_columns = ['CS1', 'CS2', 'CS3', 'CS4']
+
+# Step 2: Define the outlier elimination method (e.g., IQR)
+def eliminate_outliers(processed_dict_of_dataframes):
+    for column in elim_columns:
+        # Identify the column containing outliers
+        column_values = processed_dict_of_dataframes[column]
+        
+        # Define the range using IQR method
+        Q1 = column_values.quantile(0.25)
+        Q3 = column_values.quantile(0.75)
+        IQR = Q3 - Q1
+
+        # Filter out the outliers
+        lower_range = Q1 - 1.5 * IQR
+        upper_range = Q3 + 1.5 * IQR
+        processed_dict_of_dataframes = processed_dict_of_dataframes[(column_values >= lower_range) & (column_values <= upper_range)]
+    
+    return processed_dict_of_dataframes
+
+# Step 3: Iterate over the dictionary and update with filtered DataFrames
+filtered_dfs = {}
+for key, df in processed_dict_of_dataframes.items():
+    filtered_df = eliminate_outliers(df)
+    filtered_dfs[key] = filtered_df
+
+# End eliminate outliers procedure
+
+
+"""
+a.	Make the plot for each and every bridge element draw from the processed_dict_of_dataframes
+b.	Make the same plot for each and every bridge element draw from the filtered_dfs dictionary as well- 
+    i.	Make the two plots for each element portray the line of best fit for both sets of data so that the two datasets can be compared based on whether outliers have been removed or not.  
+"""
+
+
+from scipy.stats import linregress
+
 # Begin data visualization procedure
 
-# Plot the data in scatter plot form, the line of best fit, the equation for the line of best fit in the legend of the plot, and print the warning returned if one is raised
+def plots_pre_post_outliers(processed_dict_of_dataframes, filtered_dfs):
+    for key in processed_dict_of_dataframes.keys():
+        df1 = processed_dict_of_dataframes[key]
+        df2 = filtered_dfs[key]
+
+        df1['Time'] = mpl_dates.date2num(pd.to_datetime(df1['Time']))
+        df1['CS1'] = pd.to_numeric(df1['CS1'])
+        df2['Time'] = mpl_dates.date2num(pd.to_datetime(df2['Time']))
+        df2['CS1'] = pd.to_numeric(df2['CS1'])
+
+
+        # linear regression for outliers included
+        slope1, intercept1, _, _, _ = linregress(df1['Time'], df1['CS1'])
+        line1 = slope1 * (df1['Time']) + intercept1
+
+        # linear regression for outliers removed
+        slope2, intercept2, _, _, _ = linregress(df2['Time'], df2['CS1'])
+        line2 = slope2 * (df2['Time']) + intercept2
+
+        # Plot the dataframes and best fit lines
+        plt.figure()
+        plt.scatter(df1['Time'], df1['CS1'], label='Outliers included')
+        plt.scatter(df2['Time'], df2['CS1'], label='Outliers removed')
+        plt.plot(df1['Time'], line1, color='blue', label='Best Fit Line (processed_dict_of_dataframes)')
+        plt.plot(df2['Time'], line2, color='red', label='Best Fit Line (filtered_dfs)')
+        plt.xlabel('Time')
+        plt.ylabel('CS1')
+        plt.title(f'Plot for key: {key}')
+        
+        plt.legend()
+
+        plt.gca().xaxis.set_major_formatter(mpl_dates.DateFormatter('%Y-%m-%d'))
+        plt.gcf().autofmt_xdate()  # Adjusts the x-axis labels for better visibility
+
+
+        # Display the equation of each line on the plot
+        plt.text(0.1, 0.9, f'Line (processed_dict_of_dataframes): y = {slope1:.2f}x + {intercept1:.2f}', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.8, f'Line (filtered_dfs): y = {slope2:.2f}x + {intercept2:.2f}', transform=plt.gca().transAxes)
+        
+        
+    plt.show()
+
+plots_pre_post_outliers(processed_dict_of_dataframes, filtered_dfs)
+
+# End data visualization procedure
+
+
+"""
+def scatter_plot_with_best_fit(filtered_dfs):
+
+    for key, df in filtered_dfs.items():
+
+        x = df['Time'].values.astype(np.int64) // 10**9
+        y = df['CS1']
+
+        fig, ax = plt.subplots()
+        ax.scatter(x, y, label=key)
+
+        # Best fit line
+
+        x_ord = np.arange(len(x))        
+        coefficients = np.polyfit(x_ord, y, 1)
+        line = np.poly1d(coefficients)
+        ax.plot(x, line(x), color='red', label=f'Best Fit Line: {line}')
+
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('CS1')
+        ax.set_title(key)
+        ax.legend()
+        
+        plt.xticks(rotation=45)
+
+    plt.tight_layout()
+    plt.show()
+
+scatter_plot_with_best_fit(filtered_dfs)
+"""
+
+
+from io import BytesIO
+from base64 import b64encode
+import webbrowser
+
+
+def plot_dataframes_to_webpage(filtered_dfs, output_file):
+    """
+    Plot a dictionary of Pandas dataframes and export the plots to a single webpage.
+
+    Args:
+        dataframes (dict): A dictionary of Pandas dataframes, where the keys are the plot names and the values are the
+                           corresponding dataframes.
+        output_file (str): The filename of the output HTML file.
+
+    Returns:
+        None
+    """
+    # Create a list to store the image data and corresponding plot names
+    images = []
+    
+
+    # Iterate over the dictionary and plot each dataframe
+    for name, df in filtered_dfs.items():
+
+        x = df['Time'].values.astype(np.int64) // 10**9
+        y = df['CS1']
+
+        fig, ax = plt.subplots()
+        ax.scatter(x, y, label=key)
+
+        # Best fit line
+
+        x_ord = np.arange(len(x))        
+        coefficients = np.polyfit(x_ord, y, 1)
+        line = np.poly1d(coefficients)
+        ax.plot(x, line(x), color='red', label=f'Best Fit Line: {line}')
+
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('CS1')
+        ax.set_title(key)
+        ax.legend()
+        
+        plt.xticks(rotation=45)
+
+    plt.tight_layout()
+    plt.show()
+
+        # Convert the plot to an image
+    image_data = BytesIO()
+    plt.savefig(image_data, format='png')
+    plt.close(fig)
+
+        # Store the image data and plot name
+    image_data.seek(0)
+    encoded_image = b64encode(image_data.getvalue()).decode('utf-8')
+    images.append((encoded_image, name))
+    
+
+    # Generate the HTML content
+    html_content = ''
+    for image, name in images:
+        html_content += f'<h2>{name}</h2>'
+        html_content += f'<img src="data:image/png;base64,{image}" /><br><br>'
+ 
+    # Save the HTML content to a file
+    with open(output_file, 'w') as f:
+        f.write(html_content)
+
+    print(f"Plots exported to {output_file}")
+
+# Open the output file in the default web browser
+    webbrowser.open(f'file://{output_file}')
+
+
+# Example usage:
+# Assuming you have a dictionary of dataframes named 'dataframes'
+# and you want to save the plots to 'output.html'
+plot_dataframes_to_webpage(filtered_dfs, 'output.html')
+
+
+
+
+
+
+
+
+
+
+
+import webbrowser
+
+def export_plot_to_html(filtered_dfs, '.'):
+    fig, axes = plt.subplots(nrows=len(filtered_df), figsize=(8, 6 * len(filtered_dfs)))
+    for key, df in filtered_dfs.items():
+        fig, ax = plt.subplots()
+        # Plotting code here
+
+        # Save the figure as HTML
+        output_file = f"{output_path}/{key}.html"
+        plt.savefig(output_file, format='html')
+
+        # Open the saved HTML file in Google Chrome
+        webbrowser.get("chrome").open_new_tab(output_file)
+
+
+
+
+
+
+
+
+
+
+# Begin data visualization procedure
+
+# 1. Take out the eliminate outliers part of the visualization
+# 2. Get the correct variable for the dataframes created in the eliminate_outliers def above- and re-plot the plots with the outliers already removed!
+
+
 
 def make_plots(processed_dict_of_dataframes, x_column, y_column):
     fig, axes = plt.subplots(nrows=len(processed_dict_of_dataframes), figsize=(8, 6 * len(processed_dict_of_dataframes)))
 
     for i, (key, df) in enumerate(processed_dict_of_dataframes.items()):
         ax = axes[i]
-        x = df[x_column].dt.strftime('%j').astype(int)  # Convert datetime to ordinal        
-        y = df[y_column]
+        x_column = pd.to_datetime(df[x_column])  # Convert 'Time' column to datetime
+        y_column = df[y_column]
 
-        # Scattered data
-        ax.scatter(x, y, label= 'Scattered Data')
+
+        # Scatter data
+        ax.scatter([x_column], [y_column], label=key)
 
         # Best fit line
-        coefficients = np.polyfit(x, y, 1)
+        coefficients = np.polyfit([x_column].dt.to_pydatetime().view(np.int64) // 10**9, [y_column], 1)
         line = np.poly1d(coefficients)
-        ax.plot(x, line(x), color= 'red', label= f'Best Fit Line: {line}')
+        ax.plot(filtered_df[x_column], line(filtered_df[x_column].dt.to_pydatetime().view(np.int64) // 10**9), color='red', label=f'Best Fit Line: {line}')
 
         ax.set_xlabel(x_column)
         ax.set_ylabel(y_column)
         ax.set_title(key)
-        
+
+        # Format x-axis as dates
+        ax.xaxis.set_major_locator(mpl_dates.AutoDateLocator())
+        ax.xaxis.set_major_formatter(mpl_dates.DateFormatter('%Y-%m-%d'))
+
         ax.legend()
 
     plt.tight_layout()
     plt.show()
 
-make_plots(processed_dict_of_dataframes, 'Time', 'CS1')
 
-# End data visualization procedure
-
-
+# Begin Linear Regression Procedure:
 
 
 """
