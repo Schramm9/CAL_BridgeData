@@ -90,7 +90,7 @@ import glob
 files = glob.glob('*.xml')
 print(files)
 
-# Split filename at the underscore (_) creates a year with the state abbreviation after- at least in the case of the files for the state of California.
+# Split filename at the underscore (_) creates a year with the state abbreviation after- at least in the case of the files for the state of California.  
 
 # Then follow on by adding df to the front of the string to act as variables names for the different DataFrames.
 
@@ -119,8 +119,8 @@ for dirpath, dirnames, filenames in os.walk(root):
 # If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
     
 
-
-# Hard coded, unfortunately, possibly look for a way to find columns from xml, probably a fairly common thing, search it.   Or make it part of MVP II.
+# Dataframe columns
+# Hard coded, unfortunately, the format of the data files is not well suited to having the contents of the column headings read "automatically" from the files themselves as the tags that would make up the text of the column headings do not consistently appear within each <FHWAED> ... </FHWAED> tag set and basically there would be gaps in the <EPN> ... </EPN> data or the data connected to other columns would be misplaced when it is parsed to a dataframe.  
 
 df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
 
@@ -139,6 +139,9 @@ for i in range(len(df_names)):
 for z in range(len(files)):
     dataframes[z]['filename'] = files[z]
 
+
+# !!!
+# df
 for df in dataframes:
     # Print the data types of the columns
     print("DataFrame:", df)
@@ -166,6 +169,9 @@ desired_data_types = {
 
 
 # Iterate over the dataframes
+
+# !!!
+# df
 for df in dataframes:
     # Convert data types of columns
     df = df.astype(desired_data_types)
@@ -187,12 +193,14 @@ for df in dataframes:
  
 df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))} 
 
-# creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  
+    # creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  In this case for the state of California the keys will take the form df2016CA, df2017CA, ... df2022CA.  
 
 
 # bridge_counts_un means number of unique bridges or STRUCNUM in each df, performing this action to get a sense of the number of unique bridges in each data set.  
 
 
+# !!!
+# df
 bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
 
 # End determination of number of unique bridges
@@ -220,8 +228,14 @@ df2021CA.groupby('STRUCNUM').count()
 df2022CA.groupby('STRUCNUM').count()
 # 10899
 """
+
+# Begin df_nameToDF procedure, i.e. making the variable name with a nomenclature of df20XXCA where the XX is like 16 for 2016, 17 for 2017, etc.  
+
 for k, v in df_nameToDF.items():
-    vars()[k] = v  # creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
+    vars()[k] = v  
+
+
+# creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
 #df2016CA.groupby('STRUCNUM').count()
 
 # Looked for a means of merging the dataframes within the dict of dataframes- without having to separate them out into individual variables- it may be possible, MVP II.
@@ -233,7 +247,7 @@ for k, v in df_nameToDF.items():
 
 
 # !!!
-# MVP II: make a more elegant solution to these lines of code for the 
+# MVP II: make a more elegant solution to these lines of code.  
 # !!!
 
 b_16 = df2016CA['STRUCNUM'].to_numpy()
@@ -307,6 +321,19 @@ print(null_checks[5])  # Null checks for Year 2021 STRUCNUM
 print(null_checks[6])  # Null checks for Year 2022 STRUCNUM
 """
 
+# Come up with the max number of bridges that are common to all years (first merge??)
+# Come up with the highest total number of possible EN for all STRUCNUM?
+
+# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
+
+# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
+    
+
+# !!!
+# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
+
+
+
 
 df2016CA=df2016CA[df2016CA.EPN.isnull()]
 # Drops the number of lines from 56275 to 50426
@@ -341,9 +368,7 @@ strucnum_in_all = sorted(strucnum_in_all)
 
 
 # Remove STRUCNUM not present in all dfs
-# !!!
-# Here
-# !!!
+
 df2016CA = df2016CA[np.isin(df2016CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # No. of lines 48798
 
@@ -390,17 +415,14 @@ strucnum_2021_mod = df2021CA['STRUCNUM'].unique()
 strucnum_2022_mod = df2022CA['STRUCNUM'].unique()
 
 
-# strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod 
+# strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod = strucnum_2021_mod = strucnum_2022_mod
 
 
 
 from array import *
 
-# !!!
-# Here
-# !!!
-
 # make lists of each set of strucnum to compare them.
+
 
 strucnum_2016_mod.tolist()
 
@@ -419,7 +441,7 @@ strucnum_2022_mod.tolist()
 
 # check that the STRUCNUM being pulled from each year are the same
 
-# Is this the list of bridges common to all years that I would use to make the dfs that have the missing data I could replace?  
+# Is this the list of bridges common to all years that I would use to make the dfs that have the missing data I could replace?  MVP II.
 
 if collections.Counter(strucnum_2022_mod) == collections.Counter(strucnum_2021_mod):
     print ("The lists are identical")
@@ -457,8 +479,6 @@ else :
 # The nomenclature for these merges is to place the two digit year corresponding to the next smallest df number at the beginning of the variable name as the merges are made, i.e. in the manner that df20_21_22 is merged below after the larger dfs of df2022CA and df2021CA have been merged.
 
 
-
-
 #!!!
 # Make the merging of the 7 dfs in one line starting below:
 #df_merged = 
@@ -487,8 +507,12 @@ else :
 
 # Merge the dataframes for each year.
 
+
+# MVPII: Make a dict of the df2016 thru df2022 dfs and just somehow say "merge all the dataframes in this dictionary...?  Possible?
+
+
 df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM','EN'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM','EN'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
-6
+
 
 # MVP II: Merge on only STRUCNUM - get a larger dataset and use Python to replace missing data.  Was having difficulty with the size of the dataset when merging only on STRUCNUM.  
 
@@ -765,160 +789,11 @@ df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_d
 
 # el_names means Element Names
 # https://stackoverflow.com/questions/39502079/use-strings-in-a-list-as-variable-names-in-python
-
-
-# !!!
-# Here
-# !!!
-
-# !!!
-
-"""
-# create empty list for dataframes
-dataframes = []
- 
-# append datasets into the list
-for i in range(len(df_names)):
-    temp_df = parse_XML(files[i], df_cols)
-    dataframes.append(temp_df)
-    
-nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
-
-for k, v in nameToDF.items():
-    vars()[k] = v
-"""
     
 
 # !!!
 
 # Use the key of a dictionary as the criteria to select rows from a dataframe and set the resultant rows equal to the value corresponding to the key
-
-"""
-el_names = {'12': 'deck_rc',
-            '13': 'deck_pc',
-   	        '15': 'topFlg_pc',
-   	        '16': 'topFlg_rc',
-   	        '28': 'stDeck_og',
-   	        '29': 'stDeck_cfg',
-       	    '30': 'stDeck_corrOrtho',
-            '31': 'deck_timb',
-            	'38': 'slab_rc',
-            	'39': 'slab_pc',
-            	'54': 'slab_timb',
-            	'60': 'deck_other',
-            	'65': 'slab_other',
-            	'102': 'cwBg_steel',
-            	'103': 'cwBg_pc',
-            	'105': 'cwBg_rc',
-            '106': 'cwBg_other',
-            '107': 'oGb_steel',
-            '109': 'oGb_pc',
-            '110': 'oGb_rc',
-            '111': 'oGb_timb',
-            '112': 'oGb_other',
-            '113': 'stringer_steel',
-            '115': 'stringer_pc',
-            '116': 'stringer_rc',
-            '117': 'stringer_timb',
-            '118': 'stringer_other',
-            '120': 'truss_steel',
-            '135': 'truss_timb',
-            '136': 'truss_other',
-            '141': 'arch_steel',
-            '142': 'arch_other',
-            '143': 'arch_pc',
-            '144': 'arch_rc',
-            '145': 'arch_masonry',
-            '146': 'arch_timb',
-            '147': 'cbl_mSt',
-            '148': 'cbl_secSt',
-            '149': 'cbl_secOthr',
-            '152': 'flrB_steel',
-            '154': 'flrB_pc',
-            '155': 'flrB_rc',
-            '156': 'flrB_timb',
-            '157': 'flrB_other',
-            '161': 'spph',
-            '162': 'sgp',
-            '170': 'rrcf',
-            '171': 'miscSS',
-            '180': 'eqrcII',
-            '181': 'eqrcC1',
-            '182': 'eqrc_Othr',
-            '202': 'col_st',
-            	'203': 'col_othr',
-            	'204': 'col_pc',
-            	'205': 'col_rc',
-            '206': 'col_timb',
-            '207': 'twr_st',
-            '208': 'tres_timb',
-            '210': 'pw_rc',
-            '211': 'pw_othr',
-            '212': 'pw_timb',
-            '213': 'pw_mas',
-            	'215': 'abmt_rc',
-            	'216': 'abmt_timb',
-            	'217': 'abmt_mas',
-            	'218': 'abmt_othr',
-            	'219': 'abmt_steel',
-            '220': 'pcf_rc',
-            '225': 'pile_st',
-            '226': 'pile_pc',
-            '227': 'pile_rc',
-            '228': 'pile_timb',
-            '229': 'pile_othr',
-            '231': 'pc_steel',
-            	'233': 'pc_PrConc',
-            	'234': 'pc_rc',
-            '235': 'pc_timb',
-            '236': 'pc_othr',
-            '240': 'culv_st',
-            '241': 'culv_rc',
-            '242': 'culv_timb',
-            '243': 'culv_othr',
-            '244': 'culv_mas',
-            '245': 'culv_pc',
-            '250': 'tunnel',
-            '251': 'pile_castSh',
-            '252': 'pile_castDr',
-            '254': 'cSh_stFH',
-            '255': 'cSh_stPH',
-            '256': 'slopeScP',
-           	'300': 'joint_sse',
-           	'301': 'joint_ps',
-           	'302': 'joint_cs',
-           	'303': 'joint_aws',
-            '304': 'joint_oe',
-            '305': 'joint_awo',
-            '306': 'joint_othr',
-            '307': 'joint_ap',
-            '308': 'joint_ssp',
-            '309': 'joint_sf',
-            '310': 'brg_el',
-            '311': 'brg_mov',
-            '312': 'brg_ec',
-            '313': 'brg_fxd',
-            '314': 'brg_pot',
-            '315': 'brg_dsk',
-            '316': 'brg_othr',
-            	'320': 'appSl_pc',
-            '321': 'appSl_rc',
-            	'330': 'br_m',
-            '331': 'br_rc',
-            '332': 'br_timb',
-            '333': 'br_othr',
-            '334': 'br_mas',
-            	'510': 'dws_ac',
-            	'511': 'dws_cp',
-            	'512': 'dws_ep',
-            '513': 'dws_timb',
-            '515': 'spc_p',
-            '516': 'spc_galv',
-            '517': 'spc_ws',
-            '520': 'rsps',
-            '521': 'cpc',
-            '522': 'deck_memb'}
-"""
 
 
 """ 06/07/22 """
@@ -932,14 +807,22 @@ el_names = {'12': 'deck_rc',
 # Get unique element numbers (el_numbers) from the 'EN' column
 el_numbers = df_data['EN'].unique()
 
+# The EN present in the resulting dataframe (for the state of California) are 64 of the possible 124 that are recognized by the FHWA.
+
+
+
 # Create an empty dictionary to store the smaller dataframes
 element_dfs = {}
 
-# Iterate over the element numbers and create smaller dataframes
+
+# Iterate over the element numbers and create smaller dataframes filtered out based on the individual element numbers
+
 for el_number in el_numbers:
     # Use getattr to dynamically create a dataframe for each group
+    
     element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
     element_dfs[el_number] = element_df
+
 
 # End filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
 
@@ -950,151 +833,11 @@ for el_number in el_numbers:
 
 # 06/17/2023: To line of code above: element_dfs[el_number] = element_df, the code is working i.e. the dfs are parsed in correctly, the merge of the respective years of the dataframes are occurring correctly, 
 
-# Come up with the max number of bridges that are common to all years (first merge??)
-# Come up with the highest total number of possible EN for all STRUCNUM
-
-"""
-el_names = {
- 'deck_rc':	'12',
- 'deck_pc': '13',
- 'topFlg_pc': '15',
- 'topFlg_rc':'16',
- 'stDeck_og':'28',
- 'stDeck_cfg':'29'
- 'stDeck_corrOrtho':	"       	    '30'"
- 'deck_timb':	            '31'
- 'slab_rc',	"            	'38'"
- 'slab_pc',	"            	'39'"
- 'slab_timb',	"            	'54'"
- 'deck_other',	"            	'60'"
- 'slab_other',	"            	'65'"
- 'cwBg_steel',	"            	'102'"
- 'cwBg_pc',	"            	'103'"
- 'cwBg_rc',	"            	'105'"
- 'cwBg_other',	            '106'
- 'oGb_steel',	            '107'
- 'oGb_pc',	            '109'
- 'oGb_rc',	            '110'
- 'oGb_timb',	            '111'
- 'oGb_other',	            '112'
- 'stringer_steel',	            '113'
- 'stringer_pc',	            '115'
- 'stringer_rc',	            '116'
- 'stringer_timb',	            '117'
- 'stringer_other',	            '118'
- 'truss_steel',	            '120'
- 'truss_timb',	            '135'
- 'truss_other',	            '136'
- 'arch_steel',	            '141'
- 'arch_other',	            '142'
- 'arch_pc',	            '143'
- 'arch_rc',	            '144'
- 'arch_masonry',	            '145'
- 'arch_timb',	            '146'
- 'cbl_mSt',	            '147'
- 'cbl_secSt',	            '148'
- 'cbl_secOthr',	            '149'
- 'flrB_steel',	            '152'
- 'flrB_pc',	            '154'
- 'flrB_rc',	            '155'
- 'flrB_timb',	            '156'
- 'flrB_other',	            '157'
- 'spph',	            '161'
- 'sgp',	            '162'
- 'rrcf',	            '170'
- 'miscSS',	            '171'
- 'eqrcII',	            '180'
- 'eqrcC1',	            '181'
- 'eqrc_Othr',	            '182'
- 'col_st',	            '202'
- 'col_othr',	"            	'203'"
- 'col_pc',	"            	'204'"
- 'col_rc',	"            	'205'"
- 'col_timb',	            '206'
- 'twr_st',	            '207'
- 'tres_timb',	            '208'
- 'pw_rc',	            '210'
- 'pw_othr',	            '211'
- 'pw_timb',	            '212'
- 'pw_mas',	            '213'
- 'abmt_rc',	"            	'215'"
- 'abmt_timb',	"            	'216'"
- 'abmt_mas',	"            	'217'"
- 'abmt_othr',	"            	'218'"
- 'abmt_steel',	"            	'219'"
- 'pcf_rc',	            '220'
- 'pile_st',	            '225'
- 'pile_pc',	            '226'
- 'pile_rc',	            '227'
- 'pile_timb',	            '228'
- 'pile_othr',	            '229'
- 'pc_steel',	            '231'
- 'pc_PrConc',	"            	'233'"
- 'pc_rc',	"            	'234'"
- 'pc_timb',	            '235'
- 'pc_othr',	            '236'
- 'culv_st',	            '240'
- 'culv_rc',	            '241'
- 'culv_timb',	            '242'
- 'culv_othr',	            '243'
- 'culv_mas',	            '244'
- 'culv_pc',	            '245'
- 'tunnel',	            '250'
- 'pile_castSh',	            '251'
- 'pile_castDr',	            '252'
- 'cSh_stFH',	            '254'
- 'cSh_stPH',	            '255'
- 'slopeScP',	            '256'
- 'joint_sse',	"           	'300'"
- 'joint_ps',	"           	'301'"
- 'joint_cs',	"           	'302'"
- 'joint_aws',	"           	'303'"
- 'joint_oe',	            '304'
- 'joint_awo',	            '305'
- 'joint_othr',	            '306'
- 'joint_ap',	            '307'
- 'joint_ssp',	            '308'
- 'joint_sf',	            '309'
- 'brg_el',	            '310'
- 'brg_mov',	            '311'
- 'brg_ec',	            '312'
- 'brg_fxd',	            '313'
- 'brg_pot',	            '314'
- 'brg_dsk',	            '315'
- 'brg_othr',	            '316'
- 'appSl_pc',	"            	'320'"
- 'appSl_rc',	            '321'
- 'br_m',	"            	'330'"
- 'br_rc',	            '331'
- 'br_timb',	            '332'
- 'br_othr',	            '333'
- 'br_mas',	            '334'
- 'dws_ac',	"            	'510'"
- 'dws_cp',	"            	'511'"
- 'dws_ep',	"            	'512'"
- 'dws_timb',	            '513'
- 'spc_p',	            '515'
- 'spc_galv',	            '516'
- 'spc_ws',	            '517'
- 'rsps',	            '520'
- 'cpc',	            '521'
- 'deck_memb'	            '522'
- }
-"""
-
-# MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
-
-# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
-    
-
-# !!!
-# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
-   
 
 # df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
- 
 
-"""
+
+
 el_names = {'12': 'deck_rc',
             '13': 'deck_pc',
    	        '15': 'topFlg_pc',
@@ -1109,7 +852,7 @@ el_names = {'12': 'deck_rc',
             	'60': 'deck_other',
             	'65': 'slab_other',
             	'102': 'cwBg_steel',
-            	'103': 'cwBg_pc',
+            	'104': 'cwBg_pc',
             	'105': 'cwBg_rc',
             '106': 'cwBg_other',
             '107': 'oGb_steel',
@@ -1220,132 +963,6 @@ el_names = {'12': 'deck_rc',
             '521': 'cpc',
             '522': 'deck_memb'
     }
-"""
-
-el_names = {'12': 'deck_rc',
-            '13': 'deck_pc',
-   	        '15': 'topFlg_pc',
-   	        '16': 'topFlg_rc',
-   	        '28': 'stDeck_og',
-   	        '29': 'stDeck_cfg',
-       	    '30': 'stDeck_corrOrtho',
-            '31': 'deck_timb',
-            	'38': 'slab_rc',
-            	'39': 'slab_pc',
-            	'54': 'slab_timb',
-            	'60': 'deck_other',
-            	'65': 'slab_other',
-            	'102': 'cwBg_steel',
-            	'103': 'cwBg_pc',
-            	'105': 'cwBg_rc',
-            '106': 'cwBg_other',
-            '107': 'oGb_steel',
-            '109': 'oGb_pc',
-            '110': 'oGb_rc',
-            '111': 'oGb_timb',
-            '112': 'oGb_other',
-            '113': 'stringer_steel',
-            '115': 'stringer_pc',
-            '116': 'stringer_rc',
-            '117': 'stringer_timb',
-            '118': 'stringer_other',
-            '120': 'truss_steel',
-            '135': 'truss_timb',
-            '136': 'truss_other',
-            '141': 'arch_steel',
-            '142': 'arch_other',
-            '143': 'arch_pc',
-            '144': 'arch_rc',
-            '145': 'arch_masonry',
-            '146': 'arch_timb',
-            '147': 'cbl_mSt',
-            '148': 'cbl_secSt',
-            '149': 'cbl_secOthr',
-            '152': 'flrB_steel',
-            '154': 'flrB_pc',
-            '155': 'flrB_rc',
-            '156': 'flrB_timb',
-            '157': 'flrB_other',
-            '161': 'spph',
-            '162': 'sgp',
-            '170': 'rrcf',
-            '171': 'miscSS',
-            '180': 'eqrcII',
-            '181': 'eqrcC1',
-            '182': 'eqrc_Othr',
-            '202': 'col_st',
-            	'203': 'col_othr',
-            	'204': 'col_pc',
-            	'205': 'col_rc',
-            '206': 'col_timb',
-            '207': 'twr_st',
-            '208': 'tres_timb',
-            '210': 'pw_rc',
-            '211': 'pw_othr',
-            '212': 'pw_timb',
-            '213': 'pw_mas',
-            	'215': 'abmt_rc',
-            	'216': 'abmt_timb',
-            	'217': 'abmt_mas',
-            	'218': 'abmt_othr',
-            	'219': 'abmt_steel',
-            '220': 'pcf_rc',
-            '225': 'pile_st',
-            '226': 'pile_pc',
-            '227': 'pile_rc',
-            '228': 'pile_timb',
-            '229': 'pile_othr',
-            '231': 'pc_steel',
-            	'233': 'pc_PrConc',
-            	'234': 'pc_rc',
-            '235': 'pc_timb',
-            '236': 'pc_othr',
-            '240': 'culv_st',
-            '241': 'culv_rc',
-            '242': 'culv_timb',
-            '243': 'culv_othr',
-            '244': 'culv_mas',
-            '245': 'culv_pc',
-            '250': 'tunnel',
-            '251': 'pile_castSh',
-            '252': 'pile_castDr',
-            '254': 'cSh_stFH',
-            '255': 'cSh_stPH',
-            '256': 'slopeScP',
-           	'300': 'joint_sse',
-           	'301': 'joint_ps',
-           	'302': 'joint_cs',
-           	'303': 'joint_aws',
-            '304': 'joint_oe',
-            '305': 'joint_awo',
-            '306': 'joint_othr',
-            '307': 'joint_ap',
-            '308': 'joint_ssp',
-            '309': 'joint_sf',
-            '310': 'brg_el',
-            '311': 'brg_mov',
-            '312': 'brg_ec',
-            '313': 'brg_fxd',
-            '314': 'brg_pot',
-            '315': 'brg_dsk',
-            '316': 'brg_othr',
-            	'320': 'appSl_pc',
-            '321': 'appSl_rc',
-            	'330': 'br_m',
-            '331': 'br_rc',
-            '332': 'br_timb',
-            '333': 'br_othr',
-            '334': 'br_mas',
-            	'510': 'dws_ac',
-            	'511': 'dws_cp',
-            	'512': 'dws_ep',
-            '513': 'dws_timb',
-            '515': 'spc_p',
-            '516': 'spc_galv',
-            '517': 'spc_ws',
-            '520': 'rsps',
-            '521': 'cpc',
-            '522': 'deck_memb'}
 
 
 """
@@ -1693,56 +1310,793 @@ sns.set(style="whitegrid", color_codes=True)
 # Having gotten the dictionary of dataframes known as element_dfs to hold the dataframes of each individual bridge element found in the data, I need to make the dataframes into a form that will allow for creation of data visualization.
 
 
+# Can a dictionary of dataframes have its keys changed by using another dictionary the keys of which match the original dataframe keys and join the keys in the original dataframe to the values in the second dictionary? 
 
 
-# begin year extract procedure
 
-def extract_year(df, filename_column, year_column):
-    df[year_column] = df[filename_column].str.extract(r'(\d+)').astype(int)
+# Recall that you want to make the values of the new_keys_dict come first in the join- with the original_dict keys following the underscore in the resulting original_dict
+
+
+
+# Place the value (description) from the el_names dictionary at the front of the existing element_dfs keys to make more acceptable variable names.  In other words the description e.g. topFlg_rc whose corresponding element number is 16 would take the form topFlg_rc_16 after this next function is used.  
+
+def add_key_desc(element_dfs, el_names):
+    # Get a list of the original keys
+    original_keys = list(element_dfs.keys())
+
+    # Iterate over the original keys
+    for key in original_keys:
+        # Check if the key needs to be changed
+        if key in el_names:
+            new_key = '_'.join([el_names[key], key.replace(" ", "")])
+            element_dfs[new_key] = element_dfs.pop(key)
+
+    return element_dfs
+
+add_key_desc(element_dfs, el_names)
+
+# End add_key_desc putting value from el_names in front of keys of element_dfs dictionary
+
+
+# I plan to use the CS1 condition state data as the data I will investigate for now.  I feel it necessary to point this out because the functions I plan to use may tend to remove the rows of data from the dataframe when they are not applicable such as in the case of outliers or as I have been doing below removing 1s and zeros.  
+
+# And just as I say that it occurs to me that Perhaps pulling out each CS case and evaluating them individually may be a good idea, or rather to at least create the functions to do so- rather than just making additional dicts of dataframes that would have the CS2 thru CS4 data still inside the dataframe when that data will most likely have had rows pulled out that were not outliers or 1s or zeros thus having them removed would not aid in the well fitted-ness of the model, so I may go to a practice where a dict of dataframes is created that pulls out all of the unnecessary columns, and only the CS column being considered will be left in.  
+
+# How many zeros are there the condition state CS1 thru CS4 columns in each dataframe ?
+
+def how_many_zeros(zeros_dict, col_names):
+    zero_occurrences = {}
+    
+    for key, dataframe in zeros_dict.items():
+        no_rows = len(dataframe)
+        zeros_count = []
+        
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                zeros_per_col = dataframe[col_name].value_counts()
+                zeros_found_col = zeros_per_col.get(0, 0)
+                percentage_zeros = (zeros_found_col / len(dataframe[col_name])) * 100
+                zeros_count.append(f"{col_name}: {zeros_found_col} ({percentage_zeros:.2f}%)")
+        
+        zero_occurrences[key] = [no_rows] + zeros_count
+    
+    return zero_occurrences
+zeros_dict = element_dfs.copy()
+col_names = ['CS1', 'CS2', 'CS3', 'CS4']
+
+zero_occurrences = how_many_zeros(zeros_dict, col_names)
+
+for key, counts in zero_occurrences.items():
+    print(f"Number of zeros in dataframe '{key}': {counts}")
+
+# End how_many_zeros
+
+
+# How many ones are there the condition state CS1 thru CS4 columns in each dataframe ?
+
+
+def how_many_ones(ones_dict, col_names): # ones_dict refers to the dictionary that is examined for the number and percentage of 1s in its CS1-CS4 columns.  
+    one_occurrences = {}
+
+    for key, dataframe in ones_dict.items():
+        no_rows = len(dataframe)
+        ones_count = []
+        
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                ones_per_col = dataframe[col_name].value_counts()
+                ones_found_col = ones_per_col.get(1, 0)
+                percentage_ones = (ones_found_col / len(dataframe[col_name])) * 100
+                ones_count.append(f"{col_name}: {ones_found_col} ({percentage_ones:.2f}%)")
+            
+        one_occurrences[key] = [no_rows] + ones_count
+                
+    return one_occurrences
+
+
+ones_dict = element_dfs.copy()
+col_names = ['CS1', 'CS2', 'CS3', 'CS4']
+
+one_occurrences = how_many_ones(ones_dict, col_names)
+
+for key, counts in one_occurrences.items():
+    print(f"Number of ones in dataframe '{key}': {counts}")
+
+# End how_many_ones
+
+
+# Remove 1s (and zeros (?)) from the dataframes within the dicts and save the dicts to a new variable that will point out the condition state that will be examined using the data from that dictionary
+
+
+# Is there a way to slice off one column and then copy another and attach it to the slice?
+# Slice the dataframes to allow the original data in the dataframe when first pulled from the element_dfs dictionary to stay the same except for the column sliced off - make the data from a single CS category into a numpy array and make the 
+
+# What is the overall procedure to get the data from a single column (CS1 most likely) and split it off from the original dataframe inside the dict, most likely into another dict wherein the rest of the dataframes will be sliced off similarly-
+
+# Starting from the element_dfs dict, make the new dict of dfs for the CS1 column: element_dfs_CS1 
+
+# Then copy off the year column rather than slicing it off from the df inside the dict. So element_dfs_CS1 (+ year column)
+
+# Then remove any zeros and 1s as you may think necessary, do that by making it into a separate dict zeros_ones_CS1 (i.e. similar to element_dfs.copy()) after making the zeros_ones_CS1 dict make another copy of that and remove the outliers from it: zeros_ones_CS1_no_outls
+
+# Then take the "original" element_dfs_CS1 (pre remove 1s and zeros) and remove the outliers only: element_dfs_CS1_no_outls 
+
+# I think this is the extent of what I want to do pre regression. So  make the plots with the dicts of dataframes element_dfs_CS1 (which is the CS1 column sliced off from element_dfs with the CS1 column copied from the original)
+
+
+# First element_dfs_CS1
+# Then zeros_ones_CS1
+# Then zeros_ones_CS1_no_outls
+# And lastly element_dfs_CS1_no_outls (or dict_w_outls_rmvd)
+
+
+
+# Begin remove columns from element_dfs except for CS1
+
+# List of columns to be removed and saved in new, different DataFrames
+rem_cols = ['CS2', 'CS3', 'CS4'] # columns_to_remove
+
+# New dictionary to store DataFrames with removed column
+element_dfs_CS1 = {} # new_data with the CS2 3 and 4 columns removed.  
+
+# look thru the original dict of dataframes
+for df_keyname, df in element_dfs.items():  # df_name df data.items
+    # Create a new DataFrame with the removed columns
+    cs1_col_df = df.drop(columns=rem_cols) # new_df
+    
+    # Store the new DataFrames in the new dictionary
+    element_dfs_CS1[df_keyname] = cs1_col_df
+
+# Display the original dictionary of DataFrames
+print("Original DataFrames:")
+for df_keyname, df in element_dfs.items():
+    print(f"\n{df_keyname}:")
+    print(df)
+
+# Display the new dictionary of DataFrames with removed columns
+print("\nNew DataFrames:")
+for df_keyname, df in element_dfs_CS1.items():
+    print(f"\n{df_keyname}:")
+    print(df)
+
+# The original dictionary of DataFrames (element_dfs) remains unchanged.
+
+# End remove columns from element_dfs except for CS1
+
+
+# Begin Visually check the outliers in the dataframes of the dict
+# Function to plot boxplots for each DataFrame in the dictionary known as element_dfs_CS1
+
+# boxplot cannot take a dictionary as a direct argument
+
+def boxplots_CS1(element_dfs_CS1):
+    for df_keyname, df in element_dfs_CS1.items():
+        
+        # Create a boxplot for each DataFrame
+                plt.figure(figsize=(6, 4))
+                sns.boxplot(data=df)
+                plt.title(f"Boxplot for {df_keyname}")
+                plt.show()
+
+# Call the function to plot boxplots
+boxplots_CS1(element_dfs_CS1)
+
+# End Visually check the outliers in the dataframes of the dict
+
+
+# To examine the regression of the elements that are in CS1 remove the 1s from the dictionary 
+
+# Remove the rows with 1s (ones) in them from the dataframes based on the presence of 1s in the CS1 column
+
+
+# element_dfs_CS1 = {} # new_data
+# person = 'Mike'
+# references
+    # name: person --> 44
+# memory
+    # address: 44 --> value --> Mike
+# Reference means the name of the variable, and the 
+# The reference means the variable, and the reference has a name (person in this case) AND the reference creates a memory address (or at least the value for the memory address) The memory address actually holds the value of the variable corresponding to the name of the reference. 
+
+# So the name given to a variable is like the shingle for an office, and the reference with the corresponding name of the variable is like your address book: There's the name of what lives at the address (could be a person like in this case- so one would say "we know a person lives at this address-"), followed by the number of the address (i.e. where the memory corresponding to the value of the variable is located).  
+
+# The memory for the name of the variable holds the value of the variable, the value at that memory location represents the specifics of the variable at the (i.e. a name of a person in this case, someone named Mike) and the address created in reference represents Mike's address, so specifically Mike has an address the number of which is created in reference when the variable is created.  
+
+# The object in memory is the actual location of the address that holds the value of a variable, and person is a reference.
+
+# Python has names that refer to objects.  Objects exist separately from names and names exist separately from the objects to which they refer.  (Thusly the address book analogy, the name being the shingle, the reference to the address being the address book, and the object being the )
+
+
+
+
+#def change_string(input_string:str) -> None:
+""" Notice that this functions doesn't return anything! """
+ #   input_string += 'a'
+
+#def change_list(input_list:list) -> None:
+""" Notice that this functions doesn't return anything! """
+ #   input_list.append('a')
+
+"""
+# New dictionary to store DataFrames with removed column
+element_dfs_CS1 = {} # new_data
+
+# Loop through the original dictionary of DataFrames
+for df_keyname, df in element_dfs.items():  # df_name df data.items
+    # Create a new DataFrame with the removed columns
+    cs1_col_df = df.drop(columns=rem_cols) # new_df
+    
+    # Store the new DataFrame in the new dictionary
+    element_dfs_CS1[df_keyname] = cs1_col_df
+
+"""
+
+
+
+
+
+# Begin removing 1s from the element_dfs_CS1 dictionary
+
+def rmv_ones_for_CS1(original_dict, col_names):
+    mod_dict = {}  # holds the modified dataframes where rows holding values of 1 in the CS1 column are removed.
+
+    for key, dataframe in original_dict.items():
+        mod_df = dataframe.copy()  # copy of the original df to remove the 1s
+        
+        for col_name in col_names:
+            if col_name in mod_df.columns:
+                mask = mod_df[col_name] == 1
+                mod_df.drop(mod_df[mask].index, inplace=True)
+        
+        mod_dict[key] = mod_df  # Store the modified DataFrame in the new dictionary
+    
+    return mod_dict
+
+col_names = ['CS1']
+
+
+# element_dfs_CS1_1s represents the dictionary of dataframes with the ones removed from the CS1 column.  
+element_dfs_CS1_1s = rmv_ones_for_CS1(element_dfs_CS1, col_names)
+
+# element_dfs_CS1_1s for df abmt_rc_215 length post rmv_ones_for_CS1 is 19206 rows
+
+# End Remove rows with 1s (ones) from the dataframes based on the presence of 1s in CS1
+
+
+
+
+# I think the data will produce better results if the rows with zeros in  the CS1 column are removed as well.  
+
+# Begin Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
+"""
+def rmv_zeros_for_CS1(element_dfs_CS1, col_names):
+    for key, dataframe in element_dfs_CS1.items():
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                mask = dataframe[col_name] == 0
+                dataframe = dataframe[~mask].reset_index(drop=True)
+        element_dfs_CS1[key] = dataframe
+    
+    return element_dfs_CS1
+
+
+col_names = ['CS1']
+
+element_dfs_CS1 = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
+"""
+
+def rmv_zeros_for_CS1(original_dict, col_names):
+    mod_dict = {}  # holds the modified dataframes with the rows holding zeros in CS1 column removed
+
+    for key, dataframe in original_dict.items():
+        mod_df = dataframe.copy() # copy of oringinal to remove the zeros from
+        
+        for col_name in col_names:
+            if col_name in mod_df.columns:
+                mask = mod_df[col_name] == 0
+                mod_df.drop(mod_df[mask].index, inplace=True)
+        
+        mod_dict[key] = mod_df  # Store the modified DataFrame in the new dictionary
+    
+    return mod_dict
+
+col_names = ['CS1']
+
+
+# element_dfs_CS1_1s represents the dictionary of dataframes with the zeros removed from the CS1 column.  
+element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
+
+# End Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
+
+
+
+# !!!
+# Begin eliminate outliers procedure
+
+
+
+# 08/19/2023: The outliers procedure is not removing the rows from the dataframes- this needs to be either changed or addressed through data replacement 
+
+
+
+def elim_outliers(dict_of_dfs, column_name, z_threshold=2):
+    dict_minus_outls = {}
+
+    for key, dataframe in dict_of_dfs.items():
+        # Calculate z-scores for the column
+        z_scores = (dataframe[column_name] - dataframe[column_name].mean()) / dataframe[column_name].std()
+        
+        # Create a mask to identify outlier rows
+        mask = abs(z_scores) <= z_threshold
+        
+        # Apply the mask to remove outlier rows
+        dict_minus_outls[key] = dataframe[mask]
+    
+    return dict_minus_outls
+
+# Which column is being evaluated?
+column_name = 'CS1'
+
+# Call the function to remove outliers
+dict_w_outls_rmvd = elim_outliers(element_dfs_CS1, column_name)
+
+
+
+# End eliminate outliers procedure
+
+
+
+"""
+Re-work the outliers procedure:
+    Make the procedure use "generic" variables in the function def
+    call the function for the different dicts from above, so make it (the function) use all of them (all the different dfs)
+"""
+
+
+
+
+"""
+# Function to plot boxplots for each DataFrame in the dictionary
+def plot_boxplots_for_dict_of_dfs(element_dfs_CS1):
+    for df_name, df in element_dfs_CS1.items():
+        # Create a boxplot for each DataFrame
+        plt.figure(figsize=(6, 4))
+        sns.boxplot(data=df)
+        plt.title(f"Boxplot for {df_name}")
+        plt.show()
+
+# Call the function to plot boxplots
+plot_boxplots_for_dict_of_dfs(element_dfs_CS1)
+
+"""
+
+
+
+
+
+# Begin year extract procedure
+# Use the numeric portion of the entries in the filename columns of the dataframes to use as a precursor for the year during which each observation of the condition states of each bridge occurred.  
+
+# !!!  08-22-2023
+
+# df
+# Get the year associated with each observation from the filename in the row of that observation.  
+
+def getyr_fr_filename(dict_list):
+    new_dictionaries_list = []
+    for dictionary in dict_list:
+        new_dictionary = {}
+        for key, dataframe in dictionary.items():
+            new_dataframe = dataframe.copy()  # Create a new DataFrame
+            
+            # Extract digits from filename using regex
+            digits_in_filename = new_dataframe['filename'].str.extract(r'(\d{4})')
+            
+            # Convert digits to int data type
+            new_dataframe['year'] = digits_in_filename.astype(int)
+            
+            new_dictionary[key] = new_dataframe
+        new_dictionaries_list.append(new_dictionary)
+    return new_dictionaries_list
+
+# List of dictionaries you want to examine
+dicts_to_exam = [element_dfs_CS1, element_dfs_CS1_0s, element_dfs_CS1_1s, dict_w_outls_rmvd]
+
+# Apply the function to extract digits and create 'year' column
+dicts_yr_inserted = getyr_fr_filename(dicts_to_exam)
+
+
+# End year extract procedure
+
+
+"""
+Plots to make:
+    element_dfs_CS1 Not. Sure.
+    element_dfs_CS1_0s
+    element_dfs_CS1_1s
+    element_dfs_CS1 (but after being run through the elim_outliers function- NOW BEING CALLED dict_w_outls_rmvd)
+"""
+
+# !!! 
+# 08-24-2023
+
+# Begin time column procedure
+# make a time column for each dataframe
+
+"""
+
+from dateutil.relativedelta import relativedelta
+
+def mk_time_col(dict_list):
+    for dictionary in dict_list:
+        for key, dataframe in dictionary.items():
+            if 'year' in dataframe.columns:
+                # each year will possibly have different numbers of observations from the first set of data (element_dfs_CS1) that would not have been manipulated by having any outliers, 1s or 0s removed, so the number of observations per year must be recognized and then a year's time shall be divided by the quantity of those observations.  
+                years = dataframe['year'].unique()
+                intervals = {year: 1 / dataframe['year'].value_counts()[year] for year in years}
+                
+                dataframe['year'].fillna(method='ffill', inplace=True)  # Forward fill missing values
+                dataframe['year'].fillna(method='bfill', inplace=True)  # Backward fill any remaining NaNs
+                
+                
+                dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + dataframe.groupby('year').cumcount().map(intervals) * relativedelta(years=1)
+    return dict_list
+
+
+datetime_dicts = mk_time_col(dicts_yr_inserted)
+
+"""
+# Good to above (10/01/2023)
+
+# Need to test the code for creating a time column on a single dataframe
+#1:56p 10/14/23
+# Copy an individual df from a dict:
+    # going to select a df from the first dictionary in the list dicts_yr_inserted
+    # going to copy the 3rd df in the dictionary known as abmt_rc_215
+dict_to_test = dicts_yr_inserted[0] # dictionary I'll be accessing
+df_to_test = dict_to_test.pop('abmt_rc_215', None) # copy and store the df
+print(df_to_test)
+print(dicts_yr_inserted)
+
+# Slice the popped df to allow for testing the code for making a time column
+# going to slice out the 'top' portion of this df, meaning all the entries associated with 2016, which is the first year being examined
+
+
+df_2016_test = df_to_test[(df_to_test['year'] == 2016)]
+
+df_2016_test = df_2016_test.reset_index()
+
+# Now I have my dataframe with only the data observed during the first year being examined by the analysis
+
+# df['time_of_obs'] = pd.to_datetime(df['year'], format='%Y') + pd.to_timedelta(df.index, unit='D')
+
+# Good to above (10/23/2023)
+# Files location:
+# C:\Users\Chris\CodingBootcamp\Homework\CAL_BridgeData
+
+
+# 2016-01-01 01:20:55.273913711 is initial time period of each observation.
+
+def spread_time_in_dataframe(df, datetime_column='datetime_column', year_column='year'):
+    # Set a default year
+    year = 2016
+    
+    # Check if the 'year' column exists, and if not, use the default year
+    if year_column in df.columns:
+        year = df[year_column].iloc[0]
+    
+    # Check if the datetime column exists, and if not, create it
+    if datetime_column not in df.columns:
+        num_rows = len(df)
+        start_date = pd.to_datetime(f'{year}-01-01 00:00:00')
+        end_date = pd.to_datetime(f'{year}-12-31 23:59:59')
+        date_range = pd.date_range(start_date, end_date, periods=num_rows)
+        df[datetime_column] = date_range
+    
+    # Sort the DataFrame by the datetime column
+    df.sort_values(by=datetime_column, inplace=True)
+    
+    # Calculate the total time elapsed between the first and last date
+    total_elapsed_time = (pd.to_datetime(f'{year}-12-31 23:59:59') - df[datetime_column].iloc[0]).total_seconds()
+    
+    # Calculate the time interval to spread evenly
+    time_interval = total_elapsed_time / (len(df) - 1)
+    
+    # Create a list to store dataframes to be concatenated
+    new_dfs = []
+    
+    current_time = 0
+    for index, row in df.iterrows():
+        new_row = row.copy()
+        new_row[datetime_column] = pd.to_datetime(df[datetime_column].iloc[0]) + pd.Timedelta(seconds=current_time)
+        new_dfs.append(new_row.to_frame().T)
+        current_time += time_interval
+    
+    # Concatenate the dataframes in the list
+    new_df = pd.concat(new_dfs, ignore_index=True)
+    
+    return new_df
+
+# Function call
+new_df = spread_time_in_dataframe(df_2016_test, datetime_column='Time', year_column='year')
+
+
+
+
+
+
+def mk_time_col(df, time_col, begin_clock, end_clock):
+    # Get the number of rows in the DataFrame
+
+    no_of_rows = len(df)
+    
+    # Calculate the time between rows/observations
+    time_btw_obs = (begin_clock - end_clock) / (no_of_rows - 1)
+    
+    time_df = pd.DataFrame()
+    
+    time_entries = [begin_clock + i * time_btw_obs for i in range(no_of_rows)]
+    
+    time_entries = [time.replace(year=begin_clock.year) for time in time_entries]
+    
+    time_df[time_col] = time_entries
+    
+    # Concatenate the new DataFrame with the original DataFrame
+    result_df = pd.concat([df, time_df], axis=1)
+    
+    return result_df
+
+df = df_2016_test
+
+# Set the initial and final times
+begin_clock = pd.Timestamp('2016-01-01 00:00:00')
+end_clock = pd.Timestamp('2016-12-31 23:59:59')
+    
+    # Spread time evenly across the existing DataFrame
+result_df = mk_time_col(df, 'Time', begin_clock, end_clock)
+    
+print(result_df)
+
+
+# test the code below to next test comment:
+def mk_time_col(df, yr_begin, yr_end):
+    
+    yr_begin = pd.to_datetime(yr_begin)
+    yr_end = pd.to_datetime(yr_end)
+    
+    # Calculate the total time duration
+    tot_duration = yr_begin - yr_end
+
+    # Calculate the number of rows in the DataFrame
+    no_of_rows = len(df)
+
+    # Calculate the time period for each observation
+    time_period = tot_duration / (no_of_rows - 1)
+
+    # Create a list to store evenly spread timestamps
+    time_col = [yr_begin + i * time_period for i in range(no_of_rows)]
+
+    # Assign the timestamps to a new column in the DataFrame
+    df['time'] = time_col
+
     return df
 
-def process_dictionary_of_dataframes(element_dfs, filename_column, year_column):
-    processed_dataframes = {}
-    for key, df in element_dfs.items():
-        processed_df = extract_year(df, filename_column, year_column)
-        processed_dataframes[key] = processed_df
-    return processed_dataframes
+# how to make the date be conjured directly from the year in the year column???
+yr_begin = '2016-01-01 00:00:00'
+yr_end = '2017-01-01 00:00:00'
 
-processed_dict_of_dataframes = process_dictionary_of_dataframes(element_dfs, 'filename', 'Year')
+df_2016_test = mk_time_col(df_2016_test, yr_begin, yr_end)
+print(df_2016_test)
 
-# end year extract procedure
+# test the code above to the previous test comment
 
 
-# begin time column procedure
 
-def create_even_time_column(df, year_column, time_column):
-    df[time_column] = pd.to_datetime(df[year_column], format='%Y')
-    year_counts = df[year_column].value_counts()
-    freq = pd.to_timedelta('1Y') / year_counts.max()
-    df[time_column] += pd.to_timedelta(df.groupby(year_column).cumcount() * freq, unit='D')
+def mk_time_col(df):
+    
+    # find how many unique years there are in the dataframe
+    yrs_unique = df['year'].unique()
+    
+
+    for year in yrs_unique:
+        no_of_rows = (df['year'] == year).sum()
+        
+        # Create a consistent timezone for all dates within the year
+        yr_begin = pd.Timestamp(f'{year}-01-01')
+        yr_end = pd.Timestamp(f'{year}-12-31')
+        
+        yr_begin = yr_begin.tz_localize(None)
+        yr_end = yr_end.tz_localize(None)
+        
+        # period between observations
+        per_btw_obs = pd.date_range(start=yr_begin, end=yr_end, periods = no_of_rows)
+        
+        df.loc[df['year'] == year, 'time of obs'] = per_btw_obs
+    
     return df
 
-def insert_time_column_to_dict(element_dfs, year_column, time_column):
-    processed_dataframes = {}
-    for key, df in element_dfs.items():
-        processed_df = create_even_time_column(df, year_column, time_column)
-        processed_dataframes[key] = processed_df
-    return processed_dataframes
+# Function call
+
+df = df_2016_test
+
+df_2016_test = mk_time_col(df)
+
+print(df_2016_test)
 
 
-processed_dict_of_dataframes = insert_time_column_to_dict(element_dfs, 'Year', 'Time')
 
-# Print the processed DataFrames
-for key, df in processed_dict_of_dataframes.items():
-    print(f"{key}:\n{df}\n")
 
+
+
+
+
+
+# dict_of_dfs time_col dict_list
+
+
+def mk_time_col(dicts_in_a_list):
+    for dict_of_dfs in dicts_in_a_list:
+        for key, dataframe in dict_of_dfs.items():
+        # Sort the DataFrame by 'year' column and reset the index
+            dataframe = dataframe.sort_values(by='year').reset_index(drop=True)
+
+            # time variables
+            present_yr = None
+        
+
+            # List to store the 'time' values
+            time_col = []
+
+            for index, row in dataframe.iterrows():
+                if present_yr is None:
+                    present_yr = row['year']
+                    present_time = datetime(present_yr, 1, 1)
+                
+                elif row['year'] != present_yr:
+                # Move to the next year
+                    present_yr = row['year']
+                    present_time = datetime(present_yr, 1, 1)
+                
+                # compute the time interval during the current year
+                time_interval = timedelta(days=365) / len(dataframe[dataframe['year'] == present_yr])
+            
+                # take the present time and add the time interval to it
+                present_time += time_interval
+            
+                # place the present time in the time column
+                time_col.append(present_time)
+        
+            # put the time column in the dataframe
+            dataframe['time'] = time_col
+        
+       
+    
+mk_time_col(dicts_yr_inserted)
+
+    
+def mk_time_cols_for_list(dict_list):
+    for dict_of_dfs in dict_list:
+        mk_time_col(dict_of_dfs)
+
+# function call
+mk_time_cols_for_list(dicts_yr_inserted)
+
+
+
+#from datetime import datetime, timedelta
+
+def mk_time_col(dict_list):
+    for dict_of_dfs in dict_list:
+        for key, dataframe in dict_of_dfs.items():
+            # Find the unique 4-digit years in the 'year' column of each dataframe
+            years = dataframe['year'].unique()
+            
+            # empty list for the 'time' column
+            time_col = []
+            
+            # Iterate through each year
+            for year in years:
+                # leap year? Check remainders
+                if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+                    # Leap year, True.  This is where I think this function may be going wrong because the delta, I believe, needs to be a year divided by the total number of entries (or observations) in that year.
+                    start_date = datetime(year, 1, 1)
+                    end_date = datetime(year, 12, 31)
+                    delta = timedelta(days=1)
+                    current_date = start_date
+                    while current_date <= end_date:
+                        time_col.append(current_date)
+                        current_date += delta
+                else:
+                    # Non-leap year, create datetime entries for each day except February 29
+                    start_date = datetime(year, 1, 1)
+                    end_date = datetime(year, 12, 31)
+                    delta = timedelta(days=1)
+                    current_date = start_date
+                    while current_date <= end_date:
+                        if current_date.month != 2 or current_date.day != 29:
+                            time_col.append(current_date)
+                        current_date += delta
+            # Make sure the length of time_column matches the number of rows in the DataFrame
+            if len(time_col) != len(dataframe):
+                raise ValueError(f"Length of 'time_column' ({len(time_col)}) does not match "
+                                 f"length of index ({len(dataframe)}) in DataFrame {key}.")
+            
+            # Place'time' column in dataframe
+            dataframe['time'] = time_col
+    
+    return dict_list
+
+
+# Call the function to create the 'time' column
+dicts_time_inserted = mk_time_col(dicts_yr_inserted)
+
+
+
+
+
+
+
+
+
+
+import calendar
+
+
+def mk_time_col(dict_list):
+    for dictionary in dict_list:
+        for key, dataframe in dictionary.items():
+            if 'year' in dataframe.columns:
+                if not dataframe.empty:
+                    val_of_yr = dataframe['year'].iloc[0]
+                    is_leap_year = calendar.isleap(val_of_yr)
+                    year_range = pd.date_range(start=f"{val_of_yr}-01-01", end=f"{val_of_yr + 1}-01-01", closed='left', freq='D')
+                    year_days = len(year_range) - 1  # Calculate the number of days in the year
+
+                    dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + pd.to_timedelta((dataframe.groupby('year').cumcount() / (year_days if is_leap_year else 365.0)), unit='D')
+
+    return dict_list
+
+dicts_yr_inserted = mk_time_col(dicts_yr_inserted)
+
+
+# Stopped here 09/04/2023
+
+
+
+import calendar
+
+def mk_time_col(dict_list):
+    for dictionary in dict_list:
+        for key, dataframe in dictionary.items():
+            if 'year' in dataframe.columns:
+                max_counts = dataframe.groupby('year').cumcount().max()
+                counts = dataframe.groupby('year').cumcount()
+                # avoid division by zero
+                counts = counts.apply(lambda x: 1 if x == 0 else x)  
+                
+                # Must check that dataframe is not empty
+                if not dataframe.empty:
+                    val_of_yr = dataframe['year'].iloc[0] 
+                    if calendar.isleap(val_of_yr):
+                        days_per_year = 366.0
+                    else:
+                        days_per_year = 365.0
+                    dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + pd.to_timedelta((counts * days_per_year / max_counts), unit='D')
+    
+                
+    return dict_list
+
+dicts_yr_inserted = mk_time_col(dicts_yr_inserted)
+
+#test_dicts =  mk_time_col(dicts_yr_inserted)
 # end time column procedure
 
-
-
+#08-27-2023
+# !!!
 
 
 # Data visualization prior to further preprocessing of data
+
 """
 for key, df in processed_dict_of_dataframes.items():
     min_timestamp = df['Time'].min()
@@ -1758,47 +2112,37 @@ plt.legend()
 # Show the plot
 plt.show()
 """
+# Going to perform a check of a dataframe using the largest of the dataframes in the entire set of elements, that being abmt_rc_215 (Reinforced Concrete abutments)
+# 09-03-2023
+ind_dict_yr_inserted = 0 # checking the first dictionary of the list 
+
+key_dict_yr_inserted = 'abmt_rc_215'
+
+
+df_to_chk = dicts_yr_inserted[ind_dict_yr_inserted][key_dict_yr_inserted]
+
+group_of_uniques = df.groupby('year').size().reset_index(name='Count')
+
+print(group_of_uniques)
 
 
 
 
 
 
-# Begin eliminate outliers procedure
 
 
-# Columns to consider elimination of outliers
-elim_columns = ['CS1', 'CS2', 'CS3', 'CS4']
 
-# Step 2: Define the outlier elimination method (e.g., IQR)
-def eliminate_outliers(processed_dict_of_dataframes):
-    for column in elim_columns:
-        # Identify the column containing outliers
-        column_values = processed_dict_of_dataframes[column]
-        
-        # Define the range using IQR method
-        Q1 = column_values.quantile(0.25)
-        Q3 = column_values.quantile(0.75)
-        IQR = Q3 - Q1
 
-        # Filter out the outliers
-        lower_range = Q1 - 1.5 * IQR
-        upper_range = Q3 + 1.5 * IQR
-        processed_dict_of_dataframes = processed_dict_of_dataframes[(column_values >= lower_range) & (column_values <= upper_range)]
-    
-    return processed_dict_of_dataframes
 
-# Step 3: Iterate over the dictionary and update with filtered DataFrames
-filtered_dfs = {}
-for key, df in processed_dict_of_dataframes.items():
-    filtered_df = eliminate_outliers(df)
-    filtered_dfs[key] = filtered_df
 
-# End eliminate outliers procedure
+
+# Create a function to tell if two dicts are identical... and also find the difference between copy and assignment
+
 
 
 """
-a.	Make the plot for each and every bridge element draw from the processed_dict_of_dataframes
+a.	Make the plot for each and every bridge element draw from the element_dfs dictionary
 b.	Make the same plot for each and every bridge element draw from the filtered_dfs dictionary as well- 
     i.	Make the two plots for each element portray the line of best fit for both sets of data so that the two datasets can be compared based on whether outliers have been removed or not.  
 """
@@ -1807,6 +2151,399 @@ b.	Make the same plot for each and every bridge element draw from the filtered_d
 from scipy.stats import linregress
 
 # Begin data visualization procedure
+
+# 1. Take out the eliminate outliers part of the visualization
+# 2. Get the correct variable for the dataframes created in the eliminate_outliers def above- and re-plot the plots with the outliers already removed!
+
+
+
+# The plots_pre_post_outliers function uses the dataframe with the zeros and ones removed from the CS1 column (zeros_ones_CS1_dict), as well as the dictionary with the outliers removed from the zeros_ones_CS1_dict (outl_fin_dfs) and also plots the dictionary of the original dictionary of dataframes with the variable name element_dfs once it has also had its outliers removed and will be plotted under the name element_dfs_no_outl
+
+
+
+
+
+
+def plots_pre_post_outliers(outl_fin_dfs, element_dfs_no_outl):
+    for key in outl_fin_dfs.keys():
+        df1 = outl_fin_dfs[key]
+        df2 = element_dfs_no_outl[key]
+        if not df1.empty and not df2.empty:
+
+
+# Convert datetime columns to datetime values
+            df1['Time'] = pd.to_datetime(df1['Time'])
+            df2['Time'] = pd.to_datetime(df2['Time'])
+
+# Perform linear regression for dataframe 1
+            slope1, intercept1, _, _, _ = linregress(mpl_dates.date2num(df1['Time']), df1['CS1'])
+            line1 = slope1 * mpl_dates.date2num(df1['Time']) + intercept1
+
+# Perform linear regression for dataframe 2
+            
+            slope2, intercept2, _, _, _ = linregress(mpl_dates.date2num(df2['Time']), df2['CS1'])
+            line2 = slope2 * mpl_dates.date2num(df2['Time']) + intercept2
+
+# Plot the dataframes and best fit lines
+            plt.figure()
+            plt.scatter(df1['Time'], df1['CS1'], label='outl_fin_dfs')
+            plt.scatter(df2['Time'], df2['CS1'], label='element_dfs_no_outl')
+            plt.plot(df1['Time'], line1, color='blue', label='Best Fit Line (outl_fin_dfs)')
+            plt.plot(df2['Time'], line2, color='red', label='Best Fit Line (element_dfs_no_outl)')
+            plt.xlabel('Time')
+            plt.ylabel('CS1')
+            plt.title(f'Plot for key: {key}')
+            plt.legend()
+
+# Format x-axis as dates
+            date_format = mpl_dates.DateFormatter('%Y-%M-%D')
+            plt.gca().xaxis.set_major_formatter(date_format)
+            plt.gca().xaxis.set_major_locator(mpl_dates.AutoDateLocator())
+
+# Display the equation of each line on the plot
+            plt.text(0.1, 0.9, f'Line (outl_fin_dfs): y = {slope1:.2f}x + {intercept1:.2f}', transform=plt.gca().transAxes)
+            plt.text(0.1, 0.8, f'Line (element_dfs_no_outl): y = {slope2:.2f}x + {intercept2:.2f}', transform=plt.gca().transAxes)
+
+# Close the figure
+#plt.close()
+
+            plt.show()
+        else:
+            print(f"Skipping plotting for key: {key} - Empty dataframe detected.")
+
+plots_pre_post_outliers(outl_fin_dfs, element_dfs_no_outl)
+
+
+# End data visualization procedure
+
+
+# !!! 
+# dataframes I'm thinking about using to perform regression analysis while investigating CS1:
+    
+# abmt_rc_215 is plot no. 3
+# topFlg_rc_16 is plot no. 1
+# slab_rc_38 is plot no. 5
+# pcf_rc_220 is plot no. 7
+# joint_ps_301 is plot no. 12
+# deck_rc_12 is plot no. 25
+# cwBg_rc_105 is plot no. 13
+# culv_rc_241 is plot no. 34
+
+
+# unsure:
+# arch_rc_144 is plot no. 20
+# oGb_steel_107 is plot no. 26
+# pw_rc_210 is plot no. 6
+
+
+# more unsure:
+# col_rc_205 is plot no. 10
+# oGb_rc_110 is plot no. 23
+
+# brg_mov_311 is plot no. 15
+# br_rc_331 is plot no. 9
+
+
+
+# Can't recall what was happening that made me want to be able to distinguish the keys appearing in the code or its output from the other keys that simply came from the zeros and ones (zeros_ones_CS1_dict) dictionary once those sets of data had been plotted!!!
+
+
+# BEGIN Add a modifier to the end of the keys in the outl_fin_dfs dictionary to make them distinguishable from the keys in the zeros_ones_CS1_dict.  
+
+# !!!
+
+# !!!
+
+# Begin Add a suffix to dataframes w/o outliers
+
+mod_dfs_suffix = '_no_outls'
+
+dfs_wo_outls = {key + mod_dfs_suffix: value for key, value in dfs_wo_outls.items()}
+
+
+# END Add a suffix to dataframes w/o outliers
+
+
+
+
+
+
+
+
+
+# separate the keys and values in each of the filtered_dfs dictionary and the zeros_ones_CS1_dict into individual variables
+
+
+
+
+
+
+
+
+ 
+df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))} 
+
+
+
+
+
+
+
+# Begin regression:
+    
+model = LinearRegression()
+
+
+
+
+
+
+
+
+
+
+# !!!
+
+# BREAK!!!
+
+"""
+
+# How many zeros are there in the condition state CS1 thru CS4 columns in each dataframe ?
+
+def how_many_zeros(zeros_dict, col_names):
+    zero_occurrences = {}
+    
+    for key, dataframe in zeros_dict.items():
+        no_rows = len(dataframe)
+        zeros_count = []
+        
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                zeros_per_col = dataframe[col_name].value_counts()
+                zeros_found_col = zeros_per_col.get(0, 0)
+                percentage_zeros = (zeros_found_col / len(dataframe[col_name])) * 100
+                zeros_count.append(f"{col_name}: {zeros_found_col} ({percentage_zeros:.2f}%)")
+        
+        zero_occurrences[key] = [no_rows] + zeros_count
+    
+    return zero_occurrences
+zeros_dict = element_dfs.copy()
+col_names = ['CS1', 'CS2', 'CS3', 'CS4']
+
+zero_occurrences = how_many_zeros(zeros_dict, col_names)
+
+for key, counts in zero_occurrences.items():
+    print(f"Number of zeros in dataframe '{key}': {counts}")
+
+# End how_many_zeros
+
+
+# How many ones are there the condition state CS1 thru CS4 columns in each dataframe ?
+
+
+def how_many_ones(ones_dict, col_names): # ones_dict refers to the dictionary that is examined for the number and percentage of 1s in its CS1-CS4 columns.  
+    one_occurrences = {}
+
+    for key, dataframe in ones_dict.items():
+        no_rows = len(dataframe)
+        ones_count = []
+        
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                ones_per_col = dataframe[col_name].value_counts()
+                ones_found_col = ones_per_col.get(1, 0)
+                percentage_ones = (ones_found_col / len(dataframe[col_name])) * 100
+                ones_count.append(f"{col_name}: {ones_found_col} ({percentage_ones:.2f}%)")
+            
+        one_occurrences[key] = [no_rows] + ones_count
+                
+    return one_occurrences
+
+
+ones_dict = element_dfs.copy()
+col_names = ['CS1', 'CS2', 'CS3', 'CS4']
+
+one_occurrences = how_many_ones(ones_dict, col_names)
+
+for key, counts in one_occurrences.items():
+    print(f"Number of ones in dataframe '{key}': {counts}")
+
+# End how_many_ones
+
+
+# Remove 1s (and zeros (?)) from the dataframes within the dicts and save the dicts to a new variable that will point out the condition state that will be examined using the data from that dictionary
+
+# To examine the regression of the elements that are in CS1 remove the 1s from the dictionary 
+
+
+# Remove the rows with 1s (ones) in them from the dataframes based on the presence of 1s in the CS1 column
+
+def rmv_ones_for_CS1(ones_dict, col_names):
+    for key, dataframe in ones_dict.items():
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                mask = dataframe[col_name] == 1
+                dataframe = dataframe[~mask].reset_index(drop=True)
+        ones_dict[key] = dataframe
+    
+    return ones_dict
+
+
+col_names = ['CS1']
+
+ones_dict = rmv_ones_for_CS1(ones_dict, col_names)
+
+# Print the updated data_dict
+for key, dataframe in ones_dict.items():
+    print(f"\nDataFrame '{key}':")
+    print(dataframe)
+
+# End Remove rows with 1s (ones) from the dataframes based on the presence of 1s in CS1
+
+
+# I think the data will produce better results if the rows with zeros in  the CS1 column are removed as well.  
+
+# Begin Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
+
+def rmv_zeros_for_CS1(zeros_ones_CS1_dict, col_names):
+    for key, dataframe in zeros_ones_CS1_dict.items():
+        for col_name in col_names:
+            if col_name in dataframe.columns:
+                mask = dataframe[col_name] == 0
+                dataframe = dataframe[~mask].reset_index(drop=True)
+        zeros_ones_CS1_dict[key] = dataframe
+    
+    return zeros_ones_CS1_dict
+
+
+zeros_ones_CS1_dict = ones_dict.copy()
+
+col_names = ['CS1']
+
+zeros_ones_CS1_dict = rmv_zeros_for_CS1(zeros_ones_CS1_dict, col_names)
+
+# Print the updated data_dict
+for key, dataframe in zeros_ones_CS1_dict.items():
+    print(f"\nDataFrame '{key}':")
+    print(dataframe)
+
+# End Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
+
+"""
+
+
+"""
+def skew_check(element_dfs, column_names):
+    for key, dataframe in element_dfs.items():
+        skew_values = []
+        for column_name in column_names:
+            if column_name in dataframe.columns:
+                column_data = dataframe.loc[:, column_name] 
+                skewness = column_data.skew()
+                skew_values[column_name] = skewness
+                
+                plt.hist(dataframe[column_name], bins=10, alpha=0.5, label=column_name)
+        plt.legend()
+        plt.title(f"Distribution of Columns - DataFrame '{key}'")
+        plt.show()
+        element_dfs[key]['Skewness'] = skew_values
+
+
+
+column_names = ['CS1', 'CS2', 'CS3', 'CS4']
+
+skew_check(element_dfs, column_names)
+
+# Print the updated data_dict
+for key, dataframe in element_dfs.items():
+    print(f"DataFrame '{key}':")
+    print(dataframe)
+    print()
+    
+"""
+
+
+# check and store skew
+
+skew_check_columns = ['CS1', 'CS2', 'CS3', 'CS4']
+
+for df_key, df in element_dfs.items():
+    for column in skew_check_columns:
+        sns.kdeplot(df[column], label=f"{df_key}: {column}")
+
+
+plt.xlabel('Value')
+plt.ylabel('Density')
+plt.title('Bell Curves for Specified Columns')
+plt.legend()
+plt.show()
+
+# End check and store skew
+
+
+
+
+
+
+
+# Null checks
+
+
+# First separate out the keys and values from the filtered_dfs dict:
+for k, v in filtered_dfs.items():
+    vars()[k] = v  
+
+# We're going to check the nulls for the abmt_rc (215) dataframe
+
+
+
+
+
+
+column = abmt_rc (215)['CS1']
+
+# Check if there are missing values in the column
+missing_values = column.isnull()  # Boolean Series of True/False indicating missing values
+
+# Count the number of missing values in the column
+missing_values_count = column.isnull().sum()  # Total count of missing values
+
+
+
+
+# End Null checks
+
+# Distribution checks
+
+
+# Assuming you have a dictionary called 'data_dict' with DataFrame keys and column names as values
+
+# Iterate over the dictionary and plot the distribution for each DataFrame
+for df_key, df_value in filtered_dfs.items():
+    column_name = df_value.columns[4]  # Assuming you want to plot the fifth column in each DataFrame
+    data = df_value[column_name]  # Extract the data for the specific column
+    
+    # Determine the optimal number of bins using a dynamic binning method (e.g., Freedman-Diaconis rule)
+    q75, q25 = np.percentile(data, [75 ,25])
+    iqr = q75 - q25
+    bin_width = 2 * iqr * len(data) ** (-1/3)
+    num_bins = int((data.max() - data.min()) / bin_width)
+    
+    # Plot the distribution with the dynamic number of bins
+    plt.figure()
+    sns.histplot(data, bins=num_bins, kde=True)
+    plt.title(f"Distribution of {column_name} - {df_key}")
+    plt.xlabel(column_name)
+    plt.ylabel("Frequency")
+    plt.show()
+
+# End distribution check with dynamic binning
+
+
+
+# I need to just decide to be ok with the appearance of the dates in these plots.  
+
+"""
 
 def plots_pre_post_outliers(processed_dict_of_dataframes, filtered_dfs):
     for key in processed_dict_of_dataframes.keys():
@@ -1851,42 +2588,14 @@ def plots_pre_post_outliers(processed_dict_of_dataframes, filtered_dfs):
     plt.show()
 
 plots_pre_post_outliers(processed_dict_of_dataframes, filtered_dfs)
+"""
+
 
 # End data visualization procedure
 
-
-"""
-def scatter_plot_with_best_fit(filtered_dfs):
-
-    for key, df in filtered_dfs.items():
-
-        x = df['Time'].values.astype(np.int64) // 10**9
-        y = df['CS1']
-
-        fig, ax = plt.subplots()
-        ax.scatter(x, y, label=key)
-
-        # Best fit line
-
-        x_ord = np.arange(len(x))        
-        coefficients = np.polyfit(x_ord, y, 1)
-        line = np.poly1d(coefficients)
-        ax.plot(x, line(x), color='red', label=f'Best Fit Line: {line}')
+# 
 
 
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('CS1')
-        ax.set_title(key)
-        ax.legend()
-        
-        plt.xticks(rotation=45)
-
-    plt.tight_layout()
-    plt.show()
-
-scatter_plot_with_best_fit(filtered_dfs)
-"""
 
 
 from io import BytesIO
@@ -2004,42 +2713,7 @@ def export_plot_to_html(filtered_dfs, '.'):
 
 
 
-# Begin data visualization procedure
 
-# 1. Take out the eliminate outliers part of the visualization
-# 2. Get the correct variable for the dataframes created in the eliminate_outliers def above- and re-plot the plots with the outliers already removed!
-
-
-
-def make_plots(processed_dict_of_dataframes, x_column, y_column):
-    fig, axes = plt.subplots(nrows=len(processed_dict_of_dataframes), figsize=(8, 6 * len(processed_dict_of_dataframes)))
-
-    for i, (key, df) in enumerate(processed_dict_of_dataframes.items()):
-        ax = axes[i]
-        x_column = pd.to_datetime(df[x_column])  # Convert 'Time' column to datetime
-        y_column = df[y_column]
-
-
-        # Scatter data
-        ax.scatter([x_column], [y_column], label=key)
-
-        # Best fit line
-        coefficients = np.polyfit([x_column].dt.to_pydatetime().view(np.int64) // 10**9, [y_column], 1)
-        line = np.poly1d(coefficients)
-        ax.plot(filtered_df[x_column], line(filtered_df[x_column].dt.to_pydatetime().view(np.int64) // 10**9), color='red', label=f'Best Fit Line: {line}')
-
-        ax.set_xlabel(x_column)
-        ax.set_ylabel(y_column)
-        ax.set_title(key)
-
-        # Format x-axis as dates
-        ax.xaxis.set_major_locator(mpl_dates.AutoDateLocator())
-        ax.xaxis.set_major_formatter(mpl_dates.DateFormatter('%Y-%m-%d'))
-
-        ax.legend()
-
-    plt.tight_layout()
-    plt.show()
 
 
 # Begin Linear Regression Procedure:
