@@ -1361,10 +1361,10 @@ def how_many_zeros(zeros_dict, col_names):
         zero_occurrences[key] = [no_rows] + zeros_count
     
     return zero_occurrences
-zeros_dict = element_dfs.copy()
+zeros_dict_dfs = element_dfs.copy()
 col_names = ['CS1', 'CS2', 'CS3', 'CS4']
 
-zero_occurrences = how_many_zeros(zeros_dict, col_names)
+zero_occurrences = how_many_zeros(zeros_dict_dfs, col_names)
 
 for key, counts in zero_occurrences.items():
     print(f"Number of zeros in dataframe '{key}': {counts}")
@@ -1372,7 +1372,7 @@ for key, counts in zero_occurrences.items():
 # End how_many_zeros
 
 
-# How many ones are there the condition state CS1 thru CS4 columns in each dataframe ?
+# How many ones are there in the condition state CS1 thru CS4 columns in each dataframe ?
 
 
 def how_many_ones(ones_dict, col_names): # ones_dict refers to the dictionary that is examined for the number and percentage of 1s in its CS1-CS4 columns.  
@@ -1387,17 +1387,17 @@ def how_many_ones(ones_dict, col_names): # ones_dict refers to the dictionary th
                 ones_per_col = dataframe[col_name].value_counts()
                 ones_found_col = ones_per_col.get(1, 0)
                 percentage_ones = (ones_found_col / len(dataframe[col_name])) * 100
-                ones_count.append(f"{col_name}: {ones_found_col} ({percentage_ones:.2f}%)")
+                ones_count.append(f"{col_name}: {ones_found_col} ({percentage_ones:.2f}%)") # 2 decimal places
             
         one_occurrences[key] = [no_rows] + ones_count
                 
     return one_occurrences
 
 
-ones_dict = element_dfs.copy()
+ones_dict_dfs = element_dfs.copy()
 col_names = ['CS1', 'CS2', 'CS3', 'CS4']
 
-one_occurrences = how_many_ones(ones_dict, col_names)
+one_occurrences = how_many_ones(ones_dict_dfs, col_names)
 
 for key, counts in one_occurrences.items():
     print(f"Number of ones in dataframe '{key}': {counts}")
@@ -1428,6 +1428,8 @@ for key, counts in one_occurrences.items():
 # Then zeros_ones_CS1
 # Then zeros_ones_CS1_no_outls
 # And lastly element_dfs_CS1_no_outls (or dict_w_outls_rmvd)
+
+
 
 
 
@@ -1603,7 +1605,7 @@ def rmv_zeros_for_CS1(original_dict, col_names):
 col_names = ['CS1']
 
 
-# element_dfs_CS1_1s represents the dictionary of dataframes with the zeros removed from the CS1 column.  
+# element_dfs_CS1_0s represents the dictionary of dataframes with the zeros removed from the CS1 column.  
 element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
 
 # End Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
@@ -1615,6 +1617,8 @@ element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
 
 
 
+# !!!
+# Fixed below
 # 08/19/2023: The outliers procedure is not removing the rows from the dataframes- this needs to be either changed or addressed through data replacement 
 
 
@@ -1638,7 +1642,7 @@ def elim_outliers(dict_of_dfs, column_name, z_threshold=2):
 column_name = 'CS1'
 
 # Call the function to remove outliers
-dict_w_outls_rmvd = elim_outliers(element_dfs_CS1, column_name)
+outls_rmvd_CS1 = elim_outliers(element_dfs_CS1, column_name)
 
 
 
@@ -1671,6 +1675,55 @@ plot_boxplots_for_dict_of_dfs(element_dfs_CS1)
 """
 
 
+# Need to make dict_dicts_CS1 which is to consist of the following existing dictionaries (a dictionary based on which of the CS columns is being examined):
+    #element_dfs_CS1, (dfs)
+    #element_dfs_CS1_0s, (dfs)
+    #element_dfs_CS1_1s, (dfs)
+    #outls_rmvd_CS1 (dfs)
+
+# 2new functions
+# Then come up with a new function to get the year and insert it as a row in each of the dataframes in the dict of dataframes (dict_dicts_CS1)- *New function* carry that out further to make the time column in all of the dataframes as well but as you currently have it applying to a list of dictionaries 
+
+# initialize empty dictionary for the dict of dictionaries of all the dictionaries listed above:
+dict_dicts_CS1 = {}
+
+# Make the existing dictionaries into a list:
+dicts_CS1_list = [element_dfs_CS1, element_dfs_CS1_0s, element_dfs_CS1_1s, outls_rmvd_CS1]
+
+# because dictionary objects are not hashable, they cannot be used as keys in another dictionary.  
+dict_names_CS1 = ['element_dfs_CS1', 'element_dfs_CS1_0s', 'element_dfs_CS1_1s', 'outls_rmvd_CS1']
+
+dict_dicts_CS1 = {var_name: globals()[var_name] for var_name in dict_names_CS1}
+
+# dict_of_dicts = {var_name: locals()[var_name] for var_name in dict_names}
+
+"""
+# sample_module.py
+
+def create_dict_of_dicts(*dicts):
+    return {var_name: data_dict for var_name, data_dict in zip(dict_names, dicts)}
+
+# sample main.py file
+
+import sample_module
+
+# Sample separate dictionaries
+dict1 = {'key1': 'df1', 'key2': 'df2', ...}  # Replace 'df1', 'df2' with your actual DataFrames
+dict2 = {'key1': 'df3', 'key2': 'df4', ...}  # Replace 'df3', 'df4' with your actual DataFrames
+# Add more dictionaries as needed
+
+# List of existing dictionaries
+list_of_original_dicts = [dict1, dict2]  # Add more dictionaries as needed
+
+# List of variable names
+dict_names = ['dict1', 'dict2']  # Match the order of variable names to dictionaries
+
+# Use the function from sample_module to create dict_of_dicts
+dict_of_dicts = sample_module.create_dict_of_dicts(*list_of_original_dicts)
+
+# Now dict_of_dicts contains the desired structure with variable names as keys
+"""
+
 
 
 
@@ -1682,11 +1735,16 @@ plot_boxplots_for_dict_of_dfs(element_dfs_CS1)
 # df
 # Get the year associated with each observation from the filename in the row of that observation.  
 
-def getyr_fr_filename(dict_list):
-    new_dictionaries_list = []
-    for dictionary in dict_list:
+
+
+
+def getyr_fr_filename(dict_of_dicts):
+    new_dict_of_dicts = {}
+    
+    for key, dictionary in dict_of_dicts.items():
         new_dictionary = {}
-        for key, dataframe in dictionary.items():
+        
+        for sub_key, dataframe in dictionary.items():
             new_dataframe = dataframe.copy()  # Create a new DataFrame
             
             # Extract digits from filename using regex
@@ -1695,15 +1753,19 @@ def getyr_fr_filename(dict_list):
             # Convert digits to int data type
             new_dataframe['year'] = digits_in_filename.astype(int)
             
-            new_dictionary[key] = new_dataframe
-        new_dictionaries_list.append(new_dictionary)
-    return new_dictionaries_list
+            new_dictionary[sub_key] = new_dataframe
+        
+        new_dict_of_dicts[key] = new_dictionary
+    
+    return new_dict_of_dicts
 
-# List of dictionaries you want to examine
-dicts_to_exam = [element_dfs_CS1, element_dfs_CS1_0s, element_dfs_CS1_1s, dict_w_outls_rmvd]
+# Dictionary of dictionaries to examine is dict_dicts_CS1
+
 
 # Apply the function to extract digits and create 'year' column
-dicts_yr_inserted = getyr_fr_filename(dicts_to_exam)
+new_dict_dicts_CS1 = getyr_fr_filename(dict_dicts_CS1)
+
+
 
 
 # End year extract procedure
@@ -1714,7 +1776,7 @@ Plots to make:
     element_dfs_CS1 Not. Sure.
     element_dfs_CS1_0s
     element_dfs_CS1_1s
-    element_dfs_CS1 (but after being run through the elim_outliers function- NOW BEING CALLED dict_w_outls_rmvd)
+    element_dfs_CS1 (but after being run through the elim_outliers function- NOW BEING CALLED outls_rmvd_CS1)
 """
 
 # !!! 
@@ -1748,77 +1810,326 @@ datetime_dicts = mk_time_col(dicts_yr_inserted)
 """
 # Good to above (10/01/2023)
 
+# !!!
 # Need to test the code for creating a time column on a single dataframe
 #1:56p 10/14/23
 # Copy an individual df from a dict:
     # going to select a df from the first dictionary in the list dicts_yr_inserted
     # going to copy the 3rd df in the dictionary known as abmt_rc_215
-dict_to_test = dicts_yr_inserted[0] # dictionary I'll be accessing
-df_to_test = dict_to_test.pop('abmt_rc_215', None) # copy and store the df
-print(df_to_test)
-print(dicts_yr_inserted)
+#dict_to_test = dicts_yr_inserted[0] # dictionary I'll be accessing
+#df_to_test = copy.deepcopy(dict_to_test['abmt_rc_215']) # copy and store the df as df_to_test
+#print(df_to_test)
 
-# Slice the popped df to allow for testing the code for making a time column
+#df_to_test = df_to_test.reset_index()
+
+
+
+# Slice the copied df to allow for testing the code for making a time column
 # going to slice out the 'top' portion of this df, meaning all the entries associated with 2016, which is the first year being examined
-
-
+"""
 df_2016_test = df_to_test[(df_to_test['year'] == 2016)]
 
 df_2016_test = df_2016_test.reset_index()
 
 # Now I have my dataframe with only the data observed during the first year being examined by the analysis
-
-# df['time_of_obs'] = pd.to_datetime(df['year'], format='%Y') + pd.to_timedelta(df.index, unit='D')
-
-# Good to above (10/23/2023)
-# Files location:
-# C:\Users\Chris\CodingBootcamp\Homework\CAL_BridgeData
-
-
-# 2016-01-01 01:20:55.273913711 is initial time period of each observation.
-
+"""
+# 2016-01-01 01:20:55.273913711 is initial time period of each observation. 
+"""
 def spread_time_in_dataframe(df, datetime_column='datetime_column', year_column='year'):
-    # Set a default year
-    year = 2016
-    
-    # Check if the 'year' column exists, and if not, use the default year
-    if year_column in df.columns:
-        year = df[year_column].iloc[0]
-    
-    # Check if the datetime column exists, and if not, create it
-    if datetime_column not in df.columns:
-        num_rows = len(df)
-        start_date = pd.to_datetime(f'{year}-01-01 00:00:00')
-        end_date = pd.to_datetime(f'{year}-12-31 23:59:59')
-        date_range = pd.date_range(start_date, end_date, periods=num_rows)
-        df[datetime_column] = date_range
-    
-    # Sort the DataFrame by the datetime column
-    df.sort_values(by=datetime_column, inplace=True)
-    
-    # Calculate the total time elapsed between the first and last date
-    total_elapsed_time = (pd.to_datetime(f'{year}-12-31 23:59:59') - df[datetime_column].iloc[0]).total_seconds()
-    
-    # Calculate the time interval to spread evenly
-    time_interval = total_elapsed_time / (len(df) - 1)
-    
-    # Create a list to store dataframes to be concatenated
+    # Initialize variables for the previous year and a list to store DataFrames
+    prev_year = None
     new_dfs = []
     
-    current_time = 0
     for index, row in df.iterrows():
-        new_row = row.copy()
-        new_row[datetime_column] = pd.to_datetime(df[datetime_column].iloc[0]) + pd.Timedelta(seconds=current_time)
-        new_dfs.append(new_row.to_frame().T)
-        current_time += time_interval
+        current_year = row[year_column]
+        
+        # Check if the 'year' column exists, and if not, use the default year
+        if year_column in df.columns:
+            year = df[year_column].iloc[0]
+        
+        # Check if the 'year' column value has changed
+        if current_year != prev_year:
+            # Create a new DataFrame for the current year
+            year_df = df[df[year_column] == current_year].copy()
+            
+        # Check if the datetime column exists, and if not, create it
+        if datetime_column not in df.columns:
+            num_rows = len(df)
+            start_date = pd.to_datetime(f'{year}-01-01 00:00:00')
+            end_date = pd.to_datetime(f'{year}-12-31 23:59:59')
+            date_range = pd.date_range(start_date, end_date, periods=num_rows)
+            df[datetime_column] = date_range
+            
+            # Sort the DataFrame by the datetime column
+            df.sort_values(by=datetime_column, inplace=True)
+            
+            # Calculate the total time elapsed for the current year
+            total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - year_df[datetime_column].iloc[0]).total_seconds()
+            
+            # Calculate the time interval to spread evenly
+            time_interval = total_elapsed_time / (len(year_df) - 1)
+            
+            # Spread the datetime values for the current year
+            current_time = 0
+            for idx, row in year_df.iterrows():
+                new_row = row.copy()
+                new_row[datetime_column] = pd.to_datetime(year_df[datetime_column].iloc[0]) + pd.Timedelta(seconds=current_time)
+                new_dfs.append(new_row.to_frame().T)
+                current_time += time_interval
+        
+        prev_year = current_year
     
     # Concatenate the dataframes in the list
     new_df = pd.concat(new_dfs, ignore_index=True)
     
     return new_df
 
-# Function call
-new_df = spread_time_in_dataframe(df_2016_test, datetime_column='Time', year_column='year')
+# function call
+df_to_test = spread_time_in_dataframe(df_to_test, datetime_column='date_time', year_column='year')
+"""
+
+# Good to above (10/23/2023)
+
+# Copy a dictionary from a list of dictionaries in order to manipulate it.  
+
+#dict_to_deepcopy = copy.deepcopy(dicts_yr_inserted[0]) # dictionary I'll be accessing to use to apply the time column function to the entire dictionary
+
+# Files location:
+# C:\Users\Chris\CodingBootcamp\Homework\CAL_BridgeData
+
+# df_to_test ...?
+# on 11.05.2023 test this code with the above df:
+    
+    
+"""
+def mk_timecol_alldfs_in_dict(dict_of_dfs, year_column='year', datetime_column='time of observation'):
+    # Initialize variables for the previous year and a dictionary to store DataFrames
+    prev_year = None
+    new_dfs_dict = {}
+
+    for key, df in dict_of_dfs.items():
+        for index, row in df.iterrows():
+            current_year = row[year_column]
+
+            # Check if the 'year' column exists, and if not, use the default year
+            if year_column in df.columns:
+                year = df[year_column].iloc[0]
+
+            # Check if the 'year' column value has changed
+            if current_year != prev_year:
+                # Create a new DataFrame for the current year
+                year_df = df[df[year_column] == current_year].copy()
+
+                # Calculate the total time elapsed for the current year
+                total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - year_df.index[0]).total_seconds()
+
+                # Calculate the time interval to spread evenly
+                time_interval = total_elapsed_time / (len(year_df) - 1)
+
+                # Create and populate the 'date_time' column using Timedelta
+                start_time = year_df.index.min()
+                year_df[datetime_column] = start_time + pd.to_timedelta(np.arange(len(year_df)) * time_interval, unit='s')
+
+                new_dict_of_dfs[key] = year_df
+
+            prev_year = current_year
+
+    return new_dict_of_dfs
+
+for key, df in dicts_yr_inserted.items():
+    df.index = pd.date_range(start='2016-01-01', periods=len(df), freq='D')
+
+# function call
+dicts_yr_inserted = mk_timecol_alldfs_in_dict(dicts_yr_inserted, year_column='year')
+"""
+    
+
+# element_dfs_CS1: the dict of dataframes without any outliers or 1s or zeros removed- basically the dict as it is once all the merges of the different years have been made 
+
+# dict_w_outls_rmvd: the same as element_dfs_CS1 but having been run through the elim_outliers function 
+
+# element_dfs_CS1_0s: element_dfs_CS1 but with the zeros removed from the CS1 column
+
+# element_dfs_CS1_1s: element_dfs_CS1 but with the zeros removed from the CS1 column
+
+
+# 11.22.23: make the dicts_yr_inserted list into a dictionary, attach the above keys to the four dicts already present, then attach a suffix to all the keys  attached to the dataframes in the 4 individual dictionaries, then have a function select the 3 largest (by number of rows) dataframes in each dict and perform linear regression on those 3 dataframes from each of the 4 dicts above.  
+
+
+
+# figure out what the data visualization needs to be!!!
+
+# Make a function to create an output to a webpage that will display the results of the regression analysis.  
+
+
+
+# this is where I left off on 11.26.2023 
+
+# so the function below needs work.
+
+
+
+def spread_time_elapsed(data_dict):
+    for outer_key, inner_dict in data_dict.items():
+        for inner_key, df in inner_dict.items():
+            # Ensure the 'year' column is of integer type
+            df['year'] = df['year'].astype(int)
+            
+            # Sort the dataframe by 'year'
+            df = df.sort_values(by=['year'])
+            
+            # Initialize variables for time calculation
+            current_time = datetime(df['year'].iloc[0], 1, 1, 0, 0, 0)
+            time_list = []
+            
+            # Calculate time elapsed for each row
+            for index, row in df.iterrows():
+                elapsed_years = int(row['year']) - int(df['year'].iloc[0])
+                elapsed_time = timedelta(days=index, hours=elapsed_years * 24 * 365)  # Adjust based on the actual time units you want to use
+                current_time += elapsed_time
+                time_list.append(current_time)
+            
+            # Add a new 'time' column to the dataframe
+            df['time'] = time_list
+            
+            # Update the last row of each year to 11:59 pm on December 31st
+            last_row_index = df.groupby('year').tail(1).index
+            df.loc[last_row_index, 'time'] = df.loc[last_row_index, 'time'].apply(
+                lambda x: datetime(x.year, 12, 31, 23, 59, 59)
+            )
+            
+            # Display the modified dataframe
+            print(f"DataFrame '{inner_key}' in '{outer_key}':\n", df[['year', 'time']])
+            print("=" * 50)
+
+
+new_dict_dicts_CS1 = spread_time_elapsed(new_dict_dicts_CS1)
+
+
+
+def spread_time_in_dataframe_dict(df_dict, year_column='year', datetime_column='date_time'):
+    # Initialize variables for the previous year and a dictionary to store DataFrames
+    prev_year = None
+    new_dfs_dict = {}
+
+    # Find the first day of the earliest year in the 'year' column
+    min_year = min(min(df[year_column]) for df in df_dict.values())
+    start_date = f'{min_year}-01-01'
+
+    for key, df in df_dict.items():
+        for index, row in df.iterrows():
+            current_year = row[year_column]
+
+            # Check if the 'year' column exists, and if not, use the default year
+            if year_column in df.columns:
+                year = df[year_column].iloc[0]
+
+            # Check if the 'year' column value has changed
+            if current_year != prev_year:
+                # Create a new DataFrame for the current year
+                year_df = df[df[year_column] == current_year].copy()
+
+                # Calculate the total time elapsed for the current year
+                total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - year_df.index[0]).total_seconds()
+
+                # Calculate the time interval to spread evenly
+                time_interval = total_elapsed_time / (len(year_df) - 1)
+
+                # Create and populate the 'date_time' column using Timedelta
+                start_time = pd.to_datetime(start_date)
+                year_df[datetime_column] = start_time + pd.to_timedelta(np.arange(len(year_df)) * time_interval, unit='s')
+
+                new_dfs_dict[key] = year_df
+
+            prev_year = current_year
+
+    return new_dfs_dict
+
+
+# Apply the spreading of time evenly to all DataFrames in the dictionary
+new_dfs_dict = spread_time_in_dataframe_dict(new_dict_dicts_CS1, year_column='year')
+
+
+
+
+"""
+def spread_time_in_dataframe(df, year_column='year'):
+    # Initialize variables for the previous year and a list to store DataFrames
+    prev_year = None
+    new_dfs = []
+    
+    for index, row in df.iterrows():
+        current_year = row[year_column]
+        
+        # Check if the 'year' column value has changed
+        if current_year != prev_year:
+            # Create a new DataFrame for the current year
+            year_df = df[df[year_column] == current_year].copy()
+            
+            # Calculate the number of rows in the current year
+            num_rows_in_year = len(year_df)
+            
+            # Create and populate the 'date_time' column using Timedelta
+            start_time = pd.to_datetime(f'{current_year}-01-01 00:00:00')
+            end_time = pd.to_datetime(f'{current_year+1}-01-01 00:00:00')
+            
+            # Spread time evenly within the year
+            year_df['date_time'] = pd.date_range(start=start_time, end=end_time, periods=num_rows_in_year)
+            
+            new_dfs.append(year_df)
+        
+        prev_year = current_year
+    
+    # Concatenate the dataframes in the list
+    new_df = pd.concat(new_dfs, ignore_index=True)
+    
+    return new_df
+
+# Function to apply the equal elapse of time between each row in each DataFrame in a dictionary of DataFrames.  
+
+def spread_time_in_dict(dataframes, year_column='year'):
+    result = {}
+    for key, df in dataframes.items():
+        new_df = spread_time_in_dataframe(df, year_column)
+        result[key] = new_df
+    return result
+
+# function call
+new_dict_dicts_CS1 = spread_time_in_dict(new_dict_dicts_CS1, year_column='year')
+
+# Make the functions above work for the entire set of 4 different dictionaries of dataframes.
+"""
+
+
+# 
+
+
+# Begin 
+
+# I am going to operate under the presumption that for years with larger TOT_QTY's of a bridge element observed in the field larger portions of the TOT_QTY of that element being in the CS1 condition state will result, and that for the years observed in this analysis that TOT_QTY and CS1 will be positively correlated.  I expect that this would stay relatively flat for the years observed and that for TOT_QTY and CS1 to be negatively correlated will take many more years of wear and tear on the bridges.  
+
+# Additionally, I expect that the other condition states will be negatively correlated with TOT_QTY for the years observed here (2016 to 2022). 
+    
+# The condtion state of each element will depend on the TOT_QTY in the short term and time in the long term.  
+
+# !!!
+# Need to test the code for creating a time column on a single dataframe
+#1:56p 10/14/23
+# Copy an individual df from a dict:
+    # going to select a df from the first dictionary in the list dicts_yr_inserted
+    # going to copy the 3rd df in the dictionary known as abmt_rc_215
+"""
+dict_to_test = dicts_yr_inserted[0] # dictionary I'll be accessing
+df_to_test = copy.deepcopy(dict_to_test['abmt_rc_215']) # copy and store the df as df_to_test
+print(df_to_test)
+
+df_to_test = df_to_test.reset_index()
+"""
+
+
+
+
+
 
 
 
