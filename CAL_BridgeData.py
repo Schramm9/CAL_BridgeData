@@ -227,6 +227,9 @@ df2021CA.groupby('STRUCNUM').count()
 
 df2022CA.groupby('STRUCNUM').count()
 # 10899
+
+df2023CA.groupby('STRUCNUM').count()
+# 10896
 """
 
 # Begin df_nameToDF procedure, i.e. making the variable name with a nomenclature of df20XXCA where the XX is like 16 for 2016, 17 for 2017, etc.  
@@ -247,7 +250,7 @@ for k, v in df_nameToDF.items():
 
 
 # !!!
-# MVP II: make a more elegant solution to these lines of code.  
+# MVP II: make a more elegant solution to these lines of code below creating b_16 thru b_23 variables.  
 # !!!
 
 b_16 = df2016CA['STRUCNUM'].to_numpy()
@@ -263,6 +266,8 @@ b_20 = df2020CA['STRUCNUM'].to_numpy()
 b_21 = df2021CA['STRUCNUM'].to_numpy()
 
 b_22 = df2022CA['STRUCNUM'].to_numpy()
+
+b_23 = df2023CA['STRUCNUM'].to_numpy()
 
 
 # !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (an individual bridge is denoted by STRUCNUM) that are common to all the years of data being analyzed (2016 - 2022 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 7 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as a variable as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that element number (EN) each year- some years may include condition states associated with that element present for that bridge  in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
@@ -292,6 +297,9 @@ df2021CA
 
 df2022CA
 # 85926 lines long
+
+df2023CA
+# 85926 lines long
 """
 # Looking at how many occurrences of a single bridge occur in each year so that the total possible number of bridges being observed is accurate.  
 
@@ -319,6 +327,7 @@ print(null_checks[3])  # Null checks for Year 2019 STRUCNUM
 print(null_checks[4])  # Null checks for Year 2020 STRUCNUM
 print(null_checks[5])  # Null checks for Year 2021 STRUCNUM
 print(null_checks[6])  # Null checks for Year 2022 STRUCNUM
+print(null_checks[7])  # Null checks for Year 2023 STRUCNUM
 """
 
 # Come up with the max number of bridges that are common to all years (first merge??)
@@ -356,10 +365,12 @@ df2021CA=df2021CA[df2021CA.EPN.isnull()]
 df2022CA=df2022CA[df2022CA.EPN.isnull()]
 # Drops the number of lines from 85926 to 75687
 
+df2023CA=df2023CA[df2023CA.EPN.isnull()]
+# Drops the number of lines from 86474 to 76053
 
 # Begin determine the set of STRUCNUM common to all years observed.  
 
-strucnum_in_all = list(set.intersection(*map(set, [b_16, b_17, b_18, b_19, b_20, b_21, b_22])))
+strucnum_in_all = list(set.intersection(*map(set, [b_16, b_17, b_18, b_19, b_20, b_21, b_22, b_23])))
 # Sort the list so its contents will look more familiar to the user, i.e. be in numerical order.
 strucnum_in_all = sorted(strucnum_in_all)
 # Results in 9829 bridges starting with STRUCNUM = 01 0002 & ending with STRUCNUM = 58C0026.
@@ -395,6 +406,9 @@ df2022CA = df2022CA[np.isin(df2022CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
 # No. of lines 51033
 
+df2023CA = df2023CA[np.isin(df2023CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 48562 lines long orig.
+# No. of lines 50929
 
 # Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2016_mod, strucnum_2017_mod, etc.
 # !!!
@@ -413,6 +427,9 @@ strucnum_2020_mod = df2020CA['STRUCNUM'].unique()
 strucnum_2021_mod = df2021CA['STRUCNUM'].unique()
 
 strucnum_2022_mod = df2022CA['STRUCNUM'].unique()
+
+strucnum_2023_mod = df2023CA['STRUCNUM'].unique()
+
 
 
 # strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod = strucnum_2021_mod = strucnum_2022_mod
@@ -438,15 +455,44 @@ strucnum_2021_mod.tolist()
 
 strucnum_2022_mod.tolist()
 
+strucnum_2023_mod.tolist()
+
+
 
 # check that the STRUCNUM being pulled from each year are the same
 
 # Is this the list of bridges common to all years that I would use to make the dfs that have the missing data I could replace?  MVP II.
-
+"""
 if collections.Counter(strucnum_2022_mod) == collections.Counter(strucnum_2021_mod):
     print ("The lists are identical")
 else :
     print ("The lists are not identical")
+"""
+
+#!!!
+# 12-14-2023!!!
+
+# BEGIN check content of the arrays of different bridges (strucnum) in each year procedure.  
+
+def check_array_content(*arrays):
+    if not arrays or len(arrays) < 2:
+        return True  # If there are no or only one list, they are considered equal
+
+    for i in range(len(arrays)):
+        for j in range(i + 1, len(arrays)):
+            if not np.array_equal(arrays[i], arrays[j]):
+                return False
+
+    return True
+
+arrays_to_compare = [strucnum_2016_mod, strucnum_2017_mod, strucnum_2018_mod, strucnum_2019_mod, strucnum_2020_mod, strucnum_2021_mod, strucnum_2022_mod, strucnum_2023_mod]
+
+if check_array_content(*arrays_to_compare):
+    print("All arrays are equal.")
+else:
+    print("Arrays are not equal.")
+
+# END check content of the arrays of different bridges (strucnum) in each year procedure.  
 
 # lists associated with df2022CA and df2021CA are identical.
 
@@ -455,7 +501,7 @@ else :
 
 
 
-# I think I need to scrap all of that and just find a method that will make the set of bridges that can merge on STRUCNUM and EN obvious and therefore not be forced tp come up with a means of removing individual or multiple excess lines of data from each year's individual df after coming up with a list of common EN per STRUCNUM across all years being assessed!!!!
+# I think I need to scrap all of that and just find a method that will make the set of bridges that can merge on STRUCNUM and EN obvious and therefore not be forced to come up with a means of removing individual or multiple excess lines of data from each year's individual df after coming up with a list of common EN per STRUCNUM across all years being assessed!!!!
 
 
 
@@ -511,7 +557,13 @@ else :
 # MVPII: Make a dict of the df2016 thru df2022 dfs and just somehow say "merge all the dataframes in this dictionary...?  Possible?
 
 
-df16_17_18_19_20_21_22 = pd.merge(df2022CA, df2021CA, on=['STRUCNUM','EN'], suffixes=('_22', '_21')).merge(df2020CA,  on=['STRUCNUM','EN'], suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
+
+# BEGIN Merge different dataframe years procedure
+
+df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
+
+# END Merge different dataframe years procedure
+
 
 
 # MVP II: Merge on only STRUCNUM - get a larger dataset and use Python to replace missing data.  Was having difficulty with the size of the dataset when merging only on STRUCNUM.  
@@ -592,7 +644,11 @@ df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM',
 df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
 """
 
-df16_17_18_19_20_21_22.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
+# BEGIN Rename columns
+
+df16_17_18_19_20_21_22_23.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
+
+# END Rename columns
 
 # Find out what happens to the EN column when the slices are made!! (06/15/2023)
 
@@ -729,23 +785,25 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 #df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 
 
-# Begin slicing of df_16_17_18_19_20_21_22 dataframe
+# Begin slicing of df_16_17_18_19_20_21_22_23 dataframe
 
-df16 = df16_17_18_19_20_21_22.iloc[:,[2,3,59,60,61,62,63,64]]
+df16 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,68,69,70,71,72,73]]
 
-df17 = df16_17_18_19_20_21_22.iloc[:,[2,3,50,51,52,53,54,55]]
+df17 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,59,60,61,62,63,64]]
 
-df18 = df16_17_18_19_20_21_22.iloc[:,[2,3,41,42,43,44,45,46]]
+df18 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,50,51,52,53,54,55]]
 
-df19 = df16_17_18_19_20_21_22.iloc[:,[2,3,32,33,34,35,36,37]]
+df19 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,41,42,43,44,45,46]]
 
-df20 = df16_17_18_19_20_21_22.iloc[:,[2,3,23,24,25,26,27,28]]
+df20 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,32,33,34,35,36,37]]
 
-df21 = df16_17_18_19_20_21_22.iloc[:,[2,3,14,15,16,17,18,19]]
+df21 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,23,24,25,26,27,28]]
 
-df22 = df16_17_18_19_20_21_22.iloc[:,[2,3,5,6,7,8,9,10]]
+df22 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,14,15,16,17,18,19]]
 
-# End slicing of df_16_17_18_19_20_21_22 dataframe
+df23 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,5,6,7,8,9,10]]
+
+# End slicing of df_16_17_18_19_20_21_22_23 dataframe
 
 
 # for year 2018
@@ -769,20 +827,23 @@ df16.columns = ['STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4',  'file
 
 
 # Begin create df_data dataframe
-# concatenate the dataframes to one another starting with year 2017
+# concatenate the dataframes to one another starting with year 2016
+
 # The dataframe holding all the years in order will be called df_data
 
-df_data =pd.DataFrame(np.concatenate([df16.values, df17.values, df18.values, df19.values, df20.values, df21.values, df22.values], axis=0), columns=df16.columns)
+df_data =pd.DataFrame(np.concatenate([df16.values, df17.values, df18.values, df19.values, df20.values, df21.values, df22.values, df23.values], axis=0), columns=df16.columns)
 
 # End create df_data dataframe
 
 # !!!
 
 # Convert the columns to numeric - admittedly the filename probably does not need to be numeric, but I'm trying to get this done.
+
 df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']] = df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']].apply(pd.to_numeric, errors='coerce')
 
 
 # Divide the CS1 thru CS4 by TOTALQTY to make the condition state into a percentage of the total element per bridge
+
 df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_data.TOTALQTY, axis=0)
 
 
@@ -805,6 +866,7 @@ df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_d
 # Begin filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
 
 # Get unique element numbers (el_numbers) from the 'EN' column
+
 el_numbers = df_data['EN'].unique()
 
 # The EN present in the resulting dataframe (for the state of California) are 64 of the possible 124 that are recognized by the FHWA.
@@ -812,6 +874,7 @@ el_numbers = df_data['EN'].unique()
 
 
 # Create an empty dictionary to store the smaller dataframes
+
 element_dfs = {}
 
 
@@ -1769,7 +1832,7 @@ new_dict_dicts_CS1 = getyr_fr_filename(dict_dicts_CS1)
 
 
 # End year extract procedure
-
+# Carry on with *Spread Time in DataFrame in order to create the time column in a dictionary of dictionaries- the variable of which is call new_dict_dicts_CS1
 
 """
 Plots to make:
@@ -1834,6 +1897,7 @@ df_2016_test = df_2016_test.reset_index()
 # Now I have my dataframe with only the data observed during the first year being examined by the analysis
 """
 # 2016-01-01 01:20:55.273913711 is initial time period of each observation. 
+
 """
 def spread_time_in_dataframe(df, datetime_column='datetime_column', year_column='year'):
     # Initialize variables for the previous year and a list to store DataFrames
@@ -1956,161 +2020,104 @@ dicts_yr_inserted = mk_timecol_alldfs_in_dict(dicts_yr_inserted, year_column='ye
 # 11.22.23: make the dicts_yr_inserted list into a dictionary, attach the above keys to the four dicts already present, then attach a suffix to all the keys  attached to the dataframes in the 4 individual dictionaries, then have a function select the 3 largest (by number of rows) dataframes in each dict and perform linear regression on those 3 dataframes from each of the 4 dicts above.  
 
 
+# BEGIN make the date_time column in the dictionary of dictionaries of dataframes
+
+def spread_time_in_dataframe_nested_dict(nested_dict, datetime_column='date_time'):
+    # Initialize variables for the previous year and a dictionary to store DataFrames
+    new_dfs_nested_dict = {}
+
+    for outer_key, inner_dict in nested_dict.items():
+        new_dfs_dict = {}
+        for inner_key, df in inner_dict.items():
+            # Extract unique years from the 'year' column
+            year_column = 'year'  # Define year_column for each DataFrame
+            unique_years = df[year_column].unique()
+
+            # Create an empty DataFrame to store the results
+            dfs_to_concat = []
+
+            for current_year in unique_years:
+                # Create a new DataFrame for the current year
+                year_df = df[df[year_column] == current_year].copy()
+
+                # Calculate the total time elapsed for the current year
+                total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - pd.to_datetime(f'{current_year}-01-01 00:00:00')).total_seconds()
+
+                # Calculate the time interval to spread evenly
+                if len(year_df) > 1:
+                    time_interval = total_elapsed_time / (len(year_df) - 1)
+                else:
+                    time_interval = 0
+
+                # Create and populate the 'date_time' column using Timedelta
+                start_time = pd.to_datetime(f'{current_year}-01-01 00:00:00')
+                year_df[datetime_column] = start_time + pd.to_timedelta(np.arange(len(year_df)) * time_interval, unit='s')
+
+                # Append the current year's DataFrame to the list
+                dfs_to_concat.append(year_df)
+
+            # Check if there are DataFrames to concatenate
+            if dfs_to_concat:
+                # Concatenate all DataFrames in the list
+                new_df = pd.concat(dfs_to_concat, ignore_index=True)
+                new_dfs_dict[inner_key] = new_df
+
+        new_dfs_nested_dict[outer_key] = new_dfs_dict
+
+    return new_dfs_nested_dict
+
+
+
+# Function call
+new_dict_dicts_CS1 = spread_time_in_dataframe_nested_dict(new_dict_dicts_CS1)
+
+
+# END make the date_time column in the dictionary of dictionaries of dataframes
+
+# 12/17/2023 1:50pm Good to above
+
+
+
+# Need to select the dataframes that will be regressed for each set of dictionaries.  Will do this by performing regression on top three largest dfs (by number of rows) in each of the 4 dictionaries.
+
+def find_three_lrgst_dfs_in_ea_dict(dict_of_dict_of_dfs):
+    top_three_dataframes = {}
+
+    for outer_key, inner_dict in dict_of_dict_of_dfs.items():
+        top_three_dataframes[outer_key] = {}
+
+        for inner_key, df in inner_dict.items():
+            df_length = len(df)
+            top_three_dataframes[outer_key][inner_key] = df
+
+        # Sort inner dictionary by DataFrame lengths in descending order
+        sorted_inner_lengths = sorted(top_three_dataframes[outer_key].items(), key=lambda x: len(x[1]), reverse=True)
+
+        # Select the top three DataFrames
+        top_three_names = [name for name, _ in sorted_inner_lengths[:3]]
+        top_three_dataframes[outer_key] = {name: inner_dict[name] for name in top_three_names}
+
+    return top_three_dataframes
+
+
+top3_lrgst_dfs_in_dict_dicts = find_three_lrgst_dfs_in_ea_dict(new_dict_dicts_CS1)
+
+# Begin 
+
 
 # figure out what the data visualization needs to be!!!
 
 # Make a function to create an output to a webpage that will display the results of the regression analysis.  
 
 
-
-# this is where I left off on 11.26.2023 
-
-# so the function below needs work.
-
-
-
-def spread_time_elapsed(data_dict):
-    for outer_key, inner_dict in data_dict.items():
-        for inner_key, df in inner_dict.items():
-            # Ensure the 'year' column is of integer type
-            df['year'] = df['year'].astype(int)
-            
-            # Sort the dataframe by 'year'
-            df = df.sort_values(by=['year'])
-            
-            # Initialize variables for time calculation
-            current_time = datetime(df['year'].iloc[0], 1, 1, 0, 0, 0)
-            time_list = []
-            
-            # Calculate time elapsed for each row
-            for index, row in df.iterrows():
-                elapsed_years = int(row['year']) - int(df['year'].iloc[0])
-                elapsed_time = timedelta(days=index, hours=elapsed_years * 24 * 365)  # Adjust based on the actual time units you want to use
-                current_time += elapsed_time
-                time_list.append(current_time)
-            
-            # Add a new 'time' column to the dataframe
-            df['time'] = time_list
-            
-            # Update the last row of each year to 11:59 pm on December 31st
-            last_row_index = df.groupby('year').tail(1).index
-            df.loc[last_row_index, 'time'] = df.loc[last_row_index, 'time'].apply(
-                lambda x: datetime(x.year, 12, 31, 23, 59, 59)
-            )
-            
-            # Display the modified dataframe
-            print(f"DataFrame '{inner_key}' in '{outer_key}':\n", df[['year', 'time']])
-            print("=" * 50)
-
-
-new_dict_dicts_CS1 = spread_time_elapsed(new_dict_dicts_CS1)
-
-
-
-def spread_time_in_dataframe_dict(df_dict, year_column='year', datetime_column='date_time'):
-    # Initialize variables for the previous year and a dictionary to store DataFrames
-    prev_year = None
-    new_dfs_dict = {}
-
-    # Find the first day of the earliest year in the 'year' column
-    min_year = min(min(df[year_column]) for df in df_dict.values())
-    start_date = f'{min_year}-01-01'
-
-    for key, df in df_dict.items():
-        for index, row in df.iterrows():
-            current_year = row[year_column]
-
-            # Check if the 'year' column exists, and if not, use the default year
-            if year_column in df.columns:
-                year = df[year_column].iloc[0]
-
-            # Check if the 'year' column value has changed
-            if current_year != prev_year:
-                # Create a new DataFrame for the current year
-                year_df = df[df[year_column] == current_year].copy()
-
-                # Calculate the total time elapsed for the current year
-                total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - year_df.index[0]).total_seconds()
-
-                # Calculate the time interval to spread evenly
-                time_interval = total_elapsed_time / (len(year_df) - 1)
-
-                # Create and populate the 'date_time' column using Timedelta
-                start_time = pd.to_datetime(start_date)
-                year_df[datetime_column] = start_time + pd.to_timedelta(np.arange(len(year_df)) * time_interval, unit='s')
-
-                new_dfs_dict[key] = year_df
-
-            prev_year = current_year
-
-    return new_dfs_dict
-
-
-# Apply the spreading of time evenly to all DataFrames in the dictionary
-new_dfs_dict = spread_time_in_dataframe_dict(new_dict_dicts_CS1, year_column='year')
-
-
-
-
-"""
-def spread_time_in_dataframe(df, year_column='year'):
-    # Initialize variables for the previous year and a list to store DataFrames
-    prev_year = None
-    new_dfs = []
-    
-    for index, row in df.iterrows():
-        current_year = row[year_column]
-        
-        # Check if the 'year' column value has changed
-        if current_year != prev_year:
-            # Create a new DataFrame for the current year
-            year_df = df[df[year_column] == current_year].copy()
-            
-            # Calculate the number of rows in the current year
-            num_rows_in_year = len(year_df)
-            
-            # Create and populate the 'date_time' column using Timedelta
-            start_time = pd.to_datetime(f'{current_year}-01-01 00:00:00')
-            end_time = pd.to_datetime(f'{current_year+1}-01-01 00:00:00')
-            
-            # Spread time evenly within the year
-            year_df['date_time'] = pd.date_range(start=start_time, end=end_time, periods=num_rows_in_year)
-            
-            new_dfs.append(year_df)
-        
-        prev_year = current_year
-    
-    # Concatenate the dataframes in the list
-    new_df = pd.concat(new_dfs, ignore_index=True)
-    
-    return new_df
-
-# Function to apply the equal elapse of time between each row in each DataFrame in a dictionary of DataFrames.  
-
-def spread_time_in_dict(dataframes, year_column='year'):
-    result = {}
-    for key, df in dataframes.items():
-        new_df = spread_time_in_dataframe(df, year_column)
-        result[key] = new_df
-    return result
-
-# function call
-new_dict_dicts_CS1 = spread_time_in_dict(new_dict_dicts_CS1, year_column='year')
-
-# Make the functions above work for the entire set of 4 different dictionaries of dataframes.
-"""
-
-
-# 
-
-
-# Begin 
-
-# I am going to operate under the presumption that for years with larger TOT_QTY's of a bridge element observed in the field larger portions of the TOT_QTY of that element being in the CS1 condition state will result, and that for the years observed in this analysis that TOT_QTY and CS1 will be positively correlated.  I expect that this would stay relatively flat for the years observed and that for TOT_QTY and CS1 to be negatively correlated will take many more years of wear and tear on the bridges.  
+# I am going to operate under the presumption that for years with larger TOT_QTY's of a bridge element observed in the field, that larger portions of the TOT_QTY of that element being in the CS1 condition state will result, and that for the years observed in this analysis that TOT_QTY and CS1 will be positively correlated.  I expect that this would stay relatively flat for the years observed and that for TOT_QTY and CS1 to be negatively correlated will take many more years of wear and tear on the bridges.  
 
 # Additionally, I expect that the other condition states will be negatively correlated with TOT_QTY for the years observed here (2016 to 2022). 
     
 # The condtion state of each element will depend on the TOT_QTY in the short term and time in the long term.  
+
+
+
 
 # !!!
 # Need to test the code for creating a time column on a single dataframe
@@ -2118,6 +2125,7 @@ new_dict_dicts_CS1 = spread_time_in_dict(new_dict_dicts_CS1, year_column='year')
 # Copy an individual df from a dict:
     # going to select a df from the first dictionary in the list dicts_yr_inserted
     # going to copy the 3rd df in the dictionary known as abmt_rc_215
+    
 """
 dict_to_test = dicts_yr_inserted[0] # dictionary I'll be accessing
 df_to_test = copy.deepcopy(dict_to_test['abmt_rc_215']) # copy and store the df as df_to_test
@@ -2136,293 +2144,6 @@ df_to_test = df_to_test.reset_index()
 
 
 
-def mk_time_col(df, time_col, begin_clock, end_clock):
-    # Get the number of rows in the DataFrame
-
-    no_of_rows = len(df)
-    
-    # Calculate the time between rows/observations
-    time_btw_obs = (begin_clock - end_clock) / (no_of_rows - 1)
-    
-    time_df = pd.DataFrame()
-    
-    time_entries = [begin_clock + i * time_btw_obs for i in range(no_of_rows)]
-    
-    time_entries = [time.replace(year=begin_clock.year) for time in time_entries]
-    
-    time_df[time_col] = time_entries
-    
-    # Concatenate the new DataFrame with the original DataFrame
-    result_df = pd.concat([df, time_df], axis=1)
-    
-    return result_df
-
-df = df_2016_test
-
-# Set the initial and final times
-begin_clock = pd.Timestamp('2016-01-01 00:00:00')
-end_clock = pd.Timestamp('2016-12-31 23:59:59')
-    
-    # Spread time evenly across the existing DataFrame
-result_df = mk_time_col(df, 'Time', begin_clock, end_clock)
-    
-print(result_df)
-
-
-# test the code below to next test comment:
-def mk_time_col(df, yr_begin, yr_end):
-    
-    yr_begin = pd.to_datetime(yr_begin)
-    yr_end = pd.to_datetime(yr_end)
-    
-    # Calculate the total time duration
-    tot_duration = yr_begin - yr_end
-
-    # Calculate the number of rows in the DataFrame
-    no_of_rows = len(df)
-
-    # Calculate the time period for each observation
-    time_period = tot_duration / (no_of_rows - 1)
-
-    # Create a list to store evenly spread timestamps
-    time_col = [yr_begin + i * time_period for i in range(no_of_rows)]
-
-    # Assign the timestamps to a new column in the DataFrame
-    df['time'] = time_col
-
-    return df
-
-# how to make the date be conjured directly from the year in the year column???
-yr_begin = '2016-01-01 00:00:00'
-yr_end = '2017-01-01 00:00:00'
-
-df_2016_test = mk_time_col(df_2016_test, yr_begin, yr_end)
-print(df_2016_test)
-
-# test the code above to the previous test comment
-
-
-
-def mk_time_col(df):
-    
-    # find how many unique years there are in the dataframe
-    yrs_unique = df['year'].unique()
-    
-
-    for year in yrs_unique:
-        no_of_rows = (df['year'] == year).sum()
-        
-        # Create a consistent timezone for all dates within the year
-        yr_begin = pd.Timestamp(f'{year}-01-01')
-        yr_end = pd.Timestamp(f'{year}-12-31')
-        
-        yr_begin = yr_begin.tz_localize(None)
-        yr_end = yr_end.tz_localize(None)
-        
-        # period between observations
-        per_btw_obs = pd.date_range(start=yr_begin, end=yr_end, periods = no_of_rows)
-        
-        df.loc[df['year'] == year, 'time of obs'] = per_btw_obs
-    
-    return df
-
-# Function call
-
-df = df_2016_test
-
-df_2016_test = mk_time_col(df)
-
-print(df_2016_test)
-
-
-
-
-
-
-
-
-
-# dict_of_dfs time_col dict_list
-
-
-def mk_time_col(dicts_in_a_list):
-    for dict_of_dfs in dicts_in_a_list:
-        for key, dataframe in dict_of_dfs.items():
-        # Sort the DataFrame by 'year' column and reset the index
-            dataframe = dataframe.sort_values(by='year').reset_index(drop=True)
-
-            # time variables
-            present_yr = None
-        
-
-            # List to store the 'time' values
-            time_col = []
-
-            for index, row in dataframe.iterrows():
-                if present_yr is None:
-                    present_yr = row['year']
-                    present_time = datetime(present_yr, 1, 1)
-                
-                elif row['year'] != present_yr:
-                # Move to the next year
-                    present_yr = row['year']
-                    present_time = datetime(present_yr, 1, 1)
-                
-                # compute the time interval during the current year
-                time_interval = timedelta(days=365) / len(dataframe[dataframe['year'] == present_yr])
-            
-                # take the present time and add the time interval to it
-                present_time += time_interval
-            
-                # place the present time in the time column
-                time_col.append(present_time)
-        
-            # put the time column in the dataframe
-            dataframe['time'] = time_col
-        
-       
-    
-mk_time_col(dicts_yr_inserted)
-
-    
-def mk_time_cols_for_list(dict_list):
-    for dict_of_dfs in dict_list:
-        mk_time_col(dict_of_dfs)
-
-# function call
-mk_time_cols_for_list(dicts_yr_inserted)
-
-
-
-#from datetime import datetime, timedelta
-
-def mk_time_col(dict_list):
-    for dict_of_dfs in dict_list:
-        for key, dataframe in dict_of_dfs.items():
-            # Find the unique 4-digit years in the 'year' column of each dataframe
-            years = dataframe['year'].unique()
-            
-            # empty list for the 'time' column
-            time_col = []
-            
-            # Iterate through each year
-            for year in years:
-                # leap year? Check remainders
-                if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-                    # Leap year, True.  This is where I think this function may be going wrong because the delta, I believe, needs to be a year divided by the total number of entries (or observations) in that year.
-                    start_date = datetime(year, 1, 1)
-                    end_date = datetime(year, 12, 31)
-                    delta = timedelta(days=1)
-                    current_date = start_date
-                    while current_date <= end_date:
-                        time_col.append(current_date)
-                        current_date += delta
-                else:
-                    # Non-leap year, create datetime entries for each day except February 29
-                    start_date = datetime(year, 1, 1)
-                    end_date = datetime(year, 12, 31)
-                    delta = timedelta(days=1)
-                    current_date = start_date
-                    while current_date <= end_date:
-                        if current_date.month != 2 or current_date.day != 29:
-                            time_col.append(current_date)
-                        current_date += delta
-            # Make sure the length of time_column matches the number of rows in the DataFrame
-            if len(time_col) != len(dataframe):
-                raise ValueError(f"Length of 'time_column' ({len(time_col)}) does not match "
-                                 f"length of index ({len(dataframe)}) in DataFrame {key}.")
-            
-            # Place'time' column in dataframe
-            dataframe['time'] = time_col
-    
-    return dict_list
-
-
-# Call the function to create the 'time' column
-dicts_time_inserted = mk_time_col(dicts_yr_inserted)
-
-
-
-
-
-
-
-
-
-
-import calendar
-
-
-def mk_time_col(dict_list):
-    for dictionary in dict_list:
-        for key, dataframe in dictionary.items():
-            if 'year' in dataframe.columns:
-                if not dataframe.empty:
-                    val_of_yr = dataframe['year'].iloc[0]
-                    is_leap_year = calendar.isleap(val_of_yr)
-                    year_range = pd.date_range(start=f"{val_of_yr}-01-01", end=f"{val_of_yr + 1}-01-01", closed='left', freq='D')
-                    year_days = len(year_range) - 1  # Calculate the number of days in the year
-
-                    dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + pd.to_timedelta((dataframe.groupby('year').cumcount() / (year_days if is_leap_year else 365.0)), unit='D')
-
-    return dict_list
-
-dicts_yr_inserted = mk_time_col(dicts_yr_inserted)
-
-
-# Stopped here 09/04/2023
-
-
-
-import calendar
-
-def mk_time_col(dict_list):
-    for dictionary in dict_list:
-        for key, dataframe in dictionary.items():
-            if 'year' in dataframe.columns:
-                max_counts = dataframe.groupby('year').cumcount().max()
-                counts = dataframe.groupby('year').cumcount()
-                # avoid division by zero
-                counts = counts.apply(lambda x: 1 if x == 0 else x)  
-                
-                # Must check that dataframe is not empty
-                if not dataframe.empty:
-                    val_of_yr = dataframe['year'].iloc[0] 
-                    if calendar.isleap(val_of_yr):
-                        days_per_year = 366.0
-                    else:
-                        days_per_year = 365.0
-                    dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + pd.to_timedelta((counts * days_per_year / max_counts), unit='D')
-    
-                
-    return dict_list
-
-dicts_yr_inserted = mk_time_col(dicts_yr_inserted)
-
-#test_dicts =  mk_time_col(dicts_yr_inserted)
-# end time column procedure
-
-#08-27-2023
-# !!!
-
-
-# Data visualization prior to further preprocessing of data
-
-"""
-for key, df in processed_dict_of_dataframes.items():
-    min_timestamp = df['Time'].min()
-    df['Time_relative'] = (df['Time'] - min_timestamp).dt.total_seconds()
-    
-    sns.regplot(x='Time_relative', y='CS1', data=df, label=key)
-
-# Add labels and legend
-plt.xlabel('Time')
-plt.ylabel('CS1')
-plt.legend()
-
-# Show the plot
-plt.show()
-"""
 # Going to perform a check of a dataframe using the largest of the dataframes in the entire set of elements, that being abmt_rc_215 (Reinforced Concrete abutments)
 # 09-03-2023
 ind_dict_yr_inserted = 0 # checking the first dictionary of the list 
