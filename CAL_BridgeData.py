@@ -116,7 +116,7 @@ for dirpath, dirnames, filenames in os.walk(root):
 
 # MVP II is the Minimum Viable Product version II- or a program/data analysis that would supercede this one.  
 
-# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
+# If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a later version of this application were it to be updated.  
     
 
 # Dataframe columns
@@ -125,7 +125,7 @@ for dirpath, dirnames, filenames in os.walk(root):
 df_cols = "FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"
 
 
-
+# Begin parsing of dataframes recursively
 # create empty list for dataframes
 
 dataframes = []
@@ -185,9 +185,7 @@ for df in dataframes:
 # !!!
 
 
-# !!!
-# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
-   
+# !!!  
  
 # df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
  
@@ -205,7 +203,7 @@ bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
 
 # End determination of number of unique bridges
 
-
+#df2016CA.groupby('STRUCNUM').count()
 """
 df2016CA.groupby('STRUCNUM').count() 
 # 7578
@@ -234,46 +232,30 @@ df2023CA.groupby('STRUCNUM').count()
 
 # Begin df_nameToDF procedure, i.e. making the variable name with a nomenclature of df20XXCA where the XX is like 16 for 2016, 17 for 2017, etc.  
 
+# creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.
+
 for k, v in df_nameToDF.items():
     vars()[k] = v  
 
+# End df_nameToDF procedure
+  
 
-# creates the individual dataframes with names corresponding to df_names and the associated data in the form of a dataframe corresponding to the list called dataframes.  
-#df2016CA.groupby('STRUCNUM').count()
+
 
 # Looked for a means of merging the dataframes within the dict of dataframes- without having to separate them out into individual variables- it may be possible, MVP II.
 
 
-# b_16 thru b_22 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2022, making a variable that holds the list of STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_22 variables will be larger in size (i.e. no. of rows) than the dataframes as will be seen below once the STRUCNUM not present in all years are removed.  
+# In other words a lot of what happens below all the way to the area where the slicing of the concatenated dataframe begins is all meant to insure that the STRUCNUM for each year match each other and that random bridges with no matching bridge number in the other years and their associated data aren't being included in the data I intend to analyze.
 
-# In other words a lot of what happens below all the way to the area where the slicing of the concatenated dataframe begins is all meant to insure that the STRUCNUM for each year match each other and that random bridges and their associated data aren't being included in the data I intend to analyze.
+# Inside the bridge_array_dict b_16 thru b_23 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2023, making a key that holds the list of STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_23 variables will be larger in size (i.e. no. of rows) than the dataframes as will be seen below once the STRUCNUM not present in all years are removed.  
 
+# Copy and then modify the existing dictionary using the existing keys to create new keys and copy the STRUCNUM column of the dataframe to the new dict and convert it to a numpy array.  
 
-# !!!
-# MVP II: make a more elegant solution to these lines of code below creating b_16 thru b_23 variables.  
-# !!!
-
-b_16 = df2016CA['STRUCNUM'].to_numpy()
-
-b_17 = df2017CA['STRUCNUM'].to_numpy()
-
-b_18 = df2018CA['STRUCNUM'].to_numpy()
-
-b_19 = df2019CA['STRUCNUM'].to_numpy()
-
-b_20 = df2020CA['STRUCNUM'].to_numpy()
-
-b_21 = df2021CA['STRUCNUM'].to_numpy()
-
-b_22 = df2022CA['STRUCNUM'].to_numpy()
-
-b_23 = df2023CA['STRUCNUM'].to_numpy()
-
-
-# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (an individual bridge is denoted by STRUCNUM) that are common to all the years of data being analyzed (2016 - 2022 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 7 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as a variable as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that element number (EN) each year- some years may include condition states associated with that element present for that bridge  in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
+bridge_arr_dict = {'b_' + key[4:]: df['STRUCNUM'].to_numpy() for key, df in df_nameToDF.items()}
 
 
 
+# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (an individual bridge is denoted by STRUCNUM) that are common to all the years of data being analyzed (2016 - 2023 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 8 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as a variable as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that element number (EN) each year- some years may include condition states associated with that element present for that bridge  in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
 
 
 """
@@ -301,6 +283,7 @@ df2022CA
 df2023CA
 # 85926 lines long
 """
+
 # Looking at how many occurrences of a single bridge occur in each year so that the total possible number of bridges being observed is accurate.  
 
 # !!!
@@ -337,13 +320,37 @@ print(null_checks[7])  # Null checks for Year 2023 STRUCNUM
 
 # If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
     
-
-# !!!
-# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe manually.  
+# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list or dictionary and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe hard-coded manually.
 
 
+filtered_df_nameToDF = {df_name: df[df['EPN'].isnull()] for df_name, df in df_nameToDF.items()}
+
+# change column suffixes to avoid confusion when merging at a later time.  
 
 
+# change dataframe columns by adding suffix to avoid MergeErrors in future versions and to enhance readability.
+
+# df2016CA [index:length] (index starts at zero, length starts at 1) so index = 2 means '2' then length of 6 means 6 in this case, so 2016.
+
+def add_suffix_to_col_hdr(dict_of_dfs, cols_to_exclude = None):
+    for key, df in dict_of_dfs.items():
+        # Extract a part of the key to use as a suffix
+        suffix = key[2:6]  # Making the suffixes something like CS1_2016CA from what would have been CS1
+
+        # Modify columns by adding the suffix
+        df.columns = [col + '_' + suffix if col not in cols_to_exclude else col for col in df.columns]
+
+# Call the function to add suffixes to columns
+add_suffix_to_col_hdr(filtered_df_nameToDF, cols_to_exclude = ['STRUCNUM', 'EN'])
+
+# Print modified dataframes
+for key, df in filtered_df_nameToDF.items():
+    print(f"{key}:\n{df}")
+
+
+# 12.24.2023 revisions good to above.
+#!!!
+"""
 df2016CA=df2016CA[df2016CA.EPN.isnull()]
 # Drops the number of lines from 56275 to 50426
 
@@ -367,18 +374,34 @@ df2022CA=df2022CA[df2022CA.EPN.isnull()]
 
 df2023CA=df2023CA[df2023CA.EPN.isnull()]
 # Drops the number of lines from 86474 to 76053
+"""
 
-# Begin determine the set of STRUCNUM common to all years observed.  
 
+# Begin determine the set of STRUCNUM common to all years observed.  i.e, strucnum_in_all.  
+
+strucnum_in_all = set.intersection(*map(set, bridge_arr_dict.values()))
+
+"""
 strucnum_in_all = list(set.intersection(*map(set, [b_16, b_17, b_18, b_19, b_20, b_21, b_22, b_23])))
 # Sort the list so its contents will look more familiar to the user, i.e. be in numerical order.
 strucnum_in_all = sorted(strucnum_in_all)
 # Results in 9829 bridges starting with STRUCNUM = 01 0002 & ending with STRUCNUM = 58C0026.
-
+"""
 # End determine set of strucnum_in_all 
 
 
-# Remove STRUCNUM not present in all dfs
+# BEGIN Remove STRUCNUM not present in all dfs
+
+for df_name, df in filtered_df_nameToDF.items():
+    mask = df['STRUCNUM'].isin(strucnum_in_all)
+    
+    df_filtered = df[mask]
+   
+    filtered_df_nameToDF[df_name] = df_filtered
+    
+# END Remove STRUCNUM not present in all dfs
+    
+"""
 
 df2016CA = df2016CA[np.isin(df2016CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # No. of lines 48798
@@ -409,11 +432,19 @@ df2022CA = df2022CA[np.isin(df2022CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 df2023CA = df2023CA[np.isin(df2023CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 # 48562 lines long orig.
 # No. of lines 50929
+"""
 
 # Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2016_mod, strucnum_2017_mod, etc.
 # !!!
 # Here
 # !!!
+
+# df_names = ["df" + i.split('_', 1)[0] for i in files]
+
+
+strucnum_mod = {'strucnum_' + key[2:] + '_mod': df['STRUCNUM'].unique() for key, df in filtered_df_nameToDF.items()}
+
+"""
 strucnum_2016_mod = df2016CA['STRUCNUM'].unique()
 
 strucnum_2017_mod = df2017CA['STRUCNUM'].unique()
@@ -429,7 +460,7 @@ strucnum_2021_mod = df2021CA['STRUCNUM'].unique()
 strucnum_2022_mod = df2022CA['STRUCNUM'].unique()
 
 strucnum_2023_mod = df2023CA['STRUCNUM'].unique()
-
+"""
 
 
 # strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod = strucnum_2021_mod = strucnum_2022_mod
@@ -440,7 +471,9 @@ from array import *
 
 # make lists of each set of strucnum to compare them.
 
+strucnum_mod = [ [value] for value in strucnum_mod.values()]
 
+"""
 strucnum_2016_mod.tolist()
 
 strucnum_2017_mod.tolist()
@@ -456,7 +489,7 @@ strucnum_2021_mod.tolist()
 strucnum_2022_mod.tolist()
 
 strucnum_2023_mod.tolist()
-
+"""
 
 
 # check that the STRUCNUM being pulled from each year are the same
@@ -472,7 +505,8 @@ else :
 #!!!
 # 12-14-2023!!!
 
-# BEGIN check content of the arrays of different bridges (strucnum) in each year procedure.  
+# BEGIN check content of the arrays of different years for  bridges (strucnum) in each year procedure.  
+# Specifically, check the STRUCNUM in each array match each other - checking that the sets of bridges being separated out from the raw data for each year are the same.
 
 def check_array_content(*arrays):
     if not arrays or len(arrays) < 2:
@@ -485,7 +519,9 @@ def check_array_content(*arrays):
 
     return True
 
-arrays_to_compare = [strucnum_2016_mod, strucnum_2017_mod, strucnum_2018_mod, strucnum_2019_mod, strucnum_2020_mod, strucnum_2021_mod, strucnum_2022_mod, strucnum_2023_mod]
+arrays_to_compare = [strucnum_mod]
+
+"""[strucnum_2016_mod, strucnum_2017_mod, strucnum_2018_mod, strucnum_2019_mod, strucnum_2020_mod, strucnum_2021_mod, strucnum_2022_mod, strucnum_2023_mod]"""
 
 if check_array_content(*arrays_to_compare):
     print("All arrays are equal.")
@@ -558,9 +594,35 @@ else:
 
 
 
-# BEGIN Merge different dataframe years procedure
+# BEGIN Merge different dataframe years procedure - make the merge and possibly the creation of the df_all_yrs_merged variable merged dataframe,  and perhaps make the function doing the merge can start by first merging the largest df be merged with the next largest, the result of the first merge then being merged to the next largest remaining df, and so on iteratively until all dfs have been merged, the goal being to make the resulting df contain the largest possible number of bridges common among the group of dfs being merged.  
 
+
+
+def merge_dataframes_by_length(dict_of_dfs, common_columns):
+    # Sort dataframes by length in descending order
+    sorted_dfs = sorted(dict_of_dfs.values(), key=len, reverse=True)
+
+    # Start with the two longest dataframes
+    merged_df = sorted_dfs[0].copy()
+
+    for df in sorted_dfs[1:]:
+        # Only consider the specified common columns
+        common_cols = common_columns
+
+        # Merge dataframes based on common columns
+        merged_df = pd.merge(merged_df, df, on=common_cols, how='inner')
+
+    return merged_df
+
+
+common_columns = ['STRUCNUM', 'EN']  # Specify the common columns
+
+df_all_yrs_merged = merge_dataframes_by_length(filtered_df_nameToDF, common_columns)
+print(df_all_yrs_merged)
+
+"""
 df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
+"""
 
 # END Merge different dataframe years procedure
 
@@ -644,11 +706,7 @@ df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM',
 df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
 """
 
-# BEGIN Rename columns
 
-df16_17_18_19_20_21_22_23.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
-
-# END Rename columns
 
 # Find out what happens to the EN column when the slices are made!! (06/15/2023)
 
@@ -786,6 +844,7 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 
 
 # Begin slicing of df_16_17_18_19_20_21_22_23 dataframe
+# How could this be automated>? The slicing.  
 
 df16 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,68,69,70,71,72,73]]
 
@@ -822,7 +881,17 @@ df23 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,5,6,7,8,9,10]]
 #df19 = df18_17_21_20_19.iloc[:,[38,3,4,42,43,44,45,46]]
 
 
+# BEGIN Rename columns
+"""
+df16_17_18_19_20_21_22_23.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
+"""
+# END Rename columns
+
+
 # Change the column headings of the first df- to avoid any confusion of the different suffixes associated with the different years:
+
+    
+# Change somehow to a df1st instead of df16 because this could mean avoiding hard coding something there.  
 df16.columns = ['STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4',  'filename']
 
 
@@ -1383,6 +1452,10 @@ sns.set(style="whitegrid", color_codes=True)
 
 # Place the value (description) from the el_names dictionary at the front of the existing element_dfs keys to make more acceptable variable names.  In other words the description e.g. topFlg_rc whose corresponding element number is 16 would take the form topFlg_rc_16 after this next function is used.  
 
+# Generic dict variable name: new_dict_ind_bdg_elems (newly created dictionary of individual bridge elements) i.e. the dictionary of  dataframes with the specific bridge elements separated out of the larger merge that created df_data.
+
+# Generic dict variable name: exist_dict_mod_vals i.e. the existing dictionary,  values of which are to be modified- in this case adding a suffix.
+
 def add_key_desc(element_dfs, el_names):
     # Get a list of the original keys
     original_keys = list(element_dfs.keys())
@@ -1600,7 +1673,7 @@ for df_keyname, df in element_dfs.items():  # df_name df data.items
 
 
 
-# Begin removing 1s from the element_dfs_CS1 dictionary
+# Begin removing 1s from the element_dfs_CS1 dictionary procedure
 
 def rmv_ones_for_CS1(original_dict, col_names):
     mod_dict = {}  # holds the modified dataframes where rows holding values of 1 in the CS1 column are removed.
@@ -1633,22 +1706,6 @@ element_dfs_CS1_1s = rmv_ones_for_CS1(element_dfs_CS1, col_names)
 # I think the data will produce better results if the rows with zeros in  the CS1 column are removed as well.  
 
 # Begin Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
-"""
-def rmv_zeros_for_CS1(element_dfs_CS1, col_names):
-    for key, dataframe in element_dfs_CS1.items():
-        for col_name in col_names:
-            if col_name in dataframe.columns:
-                mask = dataframe[col_name] == 0
-                dataframe = dataframe[~mask].reset_index(drop=True)
-        element_dfs_CS1[key] = dataframe
-    
-    return element_dfs_CS1
-
-
-col_names = ['CS1']
-
-element_dfs_CS1 = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
-"""
 
 def rmv_zeros_for_CS1(original_dict, col_names):
     mod_dict = {}  # holds the modified dataframes with the rows holding zeros in CS1 column removed
@@ -1678,13 +1735,9 @@ element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
 # !!!
 # Begin eliminate outliers procedure
 
-
-
 # !!!
 # Fixed below
 # 08/19/2023: The outliers procedure is not removing the rows from the dataframes- this needs to be either changed or addressed through data replacement 
-
-
 
 def elim_outliers(dict_of_dfs, column_name, z_threshold=2):
     dict_minus_outls = {}
@@ -1707,17 +1760,10 @@ column_name = 'CS1'
 # Call the function to remove outliers
 outls_rmvd_CS1 = elim_outliers(element_dfs_CS1, column_name)
 
-
-
 # End eliminate outliers procedure
 
 
 
-"""
-Re-work the outliers procedure:
-    Make the procedure use "generic" variables in the function def
-    call the function for the different dicts from above, so make it (the function) use all of them (all the different dfs)
-"""
 
 
 
@@ -1744,10 +1790,9 @@ plot_boxplots_for_dict_of_dfs(element_dfs_CS1)
     #element_dfs_CS1_1s, (dfs)
     #outls_rmvd_CS1 (dfs)
 
-# 2new functions
-# Then come up with a new function to get the year and insert it as a row in each of the dataframes in the dict of dataframes (dict_dicts_CS1)- *New function* carry that out further to make the time column in all of the dataframes as well but as you currently have it applying to a list of dictionaries 
 
-# initialize empty dictionary for the dict of dictionaries of all the dictionaries listed above:
+
+# initialize empty dictionary for the dictionary of dictionaries of all the dictionaries listed above:
 dict_dicts_CS1 = {}
 
 # Make the existing dictionaries into a list:
@@ -1799,7 +1844,7 @@ dict_of_dicts = sample_module.create_dict_of_dicts(*list_of_original_dicts)
 # Get the year associated with each observation from the filename in the row of that observation.  
 
 
-
+# BEGIN extract year from filename procedure
 
 def getyr_fr_filename(dict_of_dicts):
     new_dict_of_dicts = {}
@@ -1828,7 +1873,7 @@ def getyr_fr_filename(dict_of_dicts):
 # Apply the function to extract digits and create 'year' column
 new_dict_dicts_CS1 = getyr_fr_filename(dict_dicts_CS1)
 
-
+# END extract year from filename procedure
 
 
 # End year extract procedure
@@ -1848,29 +1893,7 @@ Plots to make:
 # Begin time column procedure
 # make a time column for each dataframe
 
-"""
 
-from dateutil.relativedelta import relativedelta
-
-def mk_time_col(dict_list):
-    for dictionary in dict_list:
-        for key, dataframe in dictionary.items():
-            if 'year' in dataframe.columns:
-                # each year will possibly have different numbers of observations from the first set of data (element_dfs_CS1) that would not have been manipulated by having any outliers, 1s or 0s removed, so the number of observations per year must be recognized and then a year's time shall be divided by the quantity of those observations.  
-                years = dataframe['year'].unique()
-                intervals = {year: 1 / dataframe['year'].value_counts()[year] for year in years}
-                
-                dataframe['year'].fillna(method='ffill', inplace=True)  # Forward fill missing values
-                dataframe['year'].fillna(method='bfill', inplace=True)  # Backward fill any remaining NaNs
-                
-                
-                dataframe['time'] = pd.to_datetime(dataframe['year'], format='%Y') + dataframe.groupby('year').cumcount().map(intervals) * relativedelta(years=1)
-    return dict_list
-
-
-datetime_dicts = mk_time_col(dicts_yr_inserted)
-
-"""
 # Good to above (10/01/2023)
 
 # !!!
@@ -1898,59 +1921,7 @@ df_2016_test = df_2016_test.reset_index()
 """
 # 2016-01-01 01:20:55.273913711 is initial time period of each observation. 
 
-"""
-def spread_time_in_dataframe(df, datetime_column='datetime_column', year_column='year'):
-    # Initialize variables for the previous year and a list to store DataFrames
-    prev_year = None
-    new_dfs = []
-    
-    for index, row in df.iterrows():
-        current_year = row[year_column]
-        
-        # Check if the 'year' column exists, and if not, use the default year
-        if year_column in df.columns:
-            year = df[year_column].iloc[0]
-        
-        # Check if the 'year' column value has changed
-        if current_year != prev_year:
-            # Create a new DataFrame for the current year
-            year_df = df[df[year_column] == current_year].copy()
-            
-        # Check if the datetime column exists, and if not, create it
-        if datetime_column not in df.columns:
-            num_rows = len(df)
-            start_date = pd.to_datetime(f'{year}-01-01 00:00:00')
-            end_date = pd.to_datetime(f'{year}-12-31 23:59:59')
-            date_range = pd.date_range(start_date, end_date, periods=num_rows)
-            df[datetime_column] = date_range
-            
-            # Sort the DataFrame by the datetime column
-            df.sort_values(by=datetime_column, inplace=True)
-            
-            # Calculate the total time elapsed for the current year
-            total_elapsed_time = (pd.to_datetime(f'{current_year}-12-31 23:59:59') - year_df[datetime_column].iloc[0]).total_seconds()
-            
-            # Calculate the time interval to spread evenly
-            time_interval = total_elapsed_time / (len(year_df) - 1)
-            
-            # Spread the datetime values for the current year
-            current_time = 0
-            for idx, row in year_df.iterrows():
-                new_row = row.copy()
-                new_row[datetime_column] = pd.to_datetime(year_df[datetime_column].iloc[0]) + pd.Timedelta(seconds=current_time)
-                new_dfs.append(new_row.to_frame().T)
-                current_time += time_interval
-        
-        prev_year = current_year
-    
-    # Concatenate the dataframes in the list
-    new_df = pd.concat(new_dfs, ignore_index=True)
-    
-    return new_df
 
-# function call
-df_to_test = spread_time_in_dataframe(df_to_test, datetime_column='date_time', year_column='year')
-"""
 
 # Good to above (10/23/2023)
 
@@ -2099,23 +2070,41 @@ def find_three_lrgst_dfs_in_ea_dict(dict_of_dict_of_dfs):
 
     return top_three_dataframes
 
-
+# Function Call.
 top3_lrgst_dfs_in_dict_dicts = find_three_lrgst_dfs_in_ea_dict(new_dict_dicts_CS1)
+
+
+# How do you get the model to take the data provided in the dataframes as x and y input from the date_time and CS1 columns respectively?  And how do you make sure those columns are converted to the form of numpy when so doing?  
+# Break one of the dictionaries out of the top3_lrgst_dfs_in_dict_dicts and perform regression on all three of the dataframes therein
+# Then get the program to add a suffix to the keys of all the different dataframes in each dictionary based on the types of those dataframes (i.e. zeros removed, ones removed, outliers removed, none removed) 
+# Once the suffix has been added successfully, get the program to perform regression on all the top three sets of dataframes of each type (i.e. from each dict in the dict of dicts)
+
+
+
 
 # Begin 
 
+# Need to figure out how to perform regression on a dict of dataframes and then perform regression on a dictionary of dictionarie of dataframes.  
+
+# When using sklearn with pandas, how does one provide the data 
+# is it possible to perform linear regression on multiple dataframes from a dictionary of dataframes  at once?  
 
 # figure out what the data visualization needs to be!!!
 
 # Make a function to create an output to a webpage that will display the results of the regression analysis.  
 
+# Regression beginning here:
+
 
 # I am going to operate under the presumption that for years with larger TOT_QTY's of a bridge element observed in the field, that larger portions of the TOT_QTY of that element being in the CS1 condition state will result, and that for the years observed in this analysis that TOT_QTY and CS1 will be positively correlated.  I expect that this would stay relatively flat for the years observed and that for TOT_QTY and CS1 to be negatively correlated will take many more years of wear and tear on the bridges.  
 
-# Additionally, I expect that the other condition states will be negatively correlated with TOT_QTY for the years observed here (2016 to 2022). 
+# Additionally, I expect that the other condition states will be negatively correlated with TOT_QTY for the years observed here (2016 to 2023). 
     
 # The condtion state of each element will depend on the TOT_QTY in the short term and time in the long term.  
 
+# Expecting CS2, CS3, and CS4 to be negatively correlated with TOT_QTY for the years observed here (2016 thru 2023).
+
+# And of course, for the years observed here (2016 thru 2023) I expect to see the CS2 CS3 and CS4 correlate negatively with CS1.  
 
 
 
