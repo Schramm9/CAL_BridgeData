@@ -325,7 +325,7 @@ print(null_checks[7])  # Null checks for Year 2023 STRUCNUM
 
 filtered_df_nameToDF = {df_name: df[df['EPN'].isnull()] for df_name, df in df_nameToDF.items()}
 
-# change column suffixes to avoid confusion when merging at a later time.  
+# change column suffixes to avoid confusion when merging at a later time in the program.  
 
 
 # change dataframe columns by adding suffix to avoid MergeErrors in future versions and to enhance readability.
@@ -616,9 +616,10 @@ def merge_dataframes_by_length(dict_of_dfs, common_columns):
 
 
 common_columns = ['STRUCNUM', 'EN']  # Specify the common columns
-
 df_all_yrs_merged = merge_dataframes_by_length(filtered_df_nameToDF, common_columns)
 print(df_all_yrs_merged)
+
+# 01-29-2024 Make the additions/changes to the merge here- use the function above, call it again, create a new variable NOT called df_all_yrs_merged and call the function on the same dict of dataframes (filtered_df_nameToDF) but only call it on the single column STRUCNUM this time.  Then have the function call again and create the new dict of dataframes (with the aforementioned new variable name) and then filter all the different parts as was done previously- and make the new dict of dataframes the same as before, but with the extra bridge elements that will result, and the wherewithal to filter all the different EN's out, a larger set of data will result, then use this later to compare or make the difference of entries into a different variable and use to add to the dfs as needed to make the frequency between the observations into even numbers of hours or minutes without any digits to the right of the decimal to better run the ARIMA model.
 
 """
 df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
@@ -843,6 +844,56 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 #df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
 
 
+# Begin dataframe slicing of non-common columns procedure  df_all_yrs_merged
+
+
+# 12.31.2023 stopped here for the night
+
+
+# identify the columns without suffixes (i.e. no '_')
+common_cols = [col for col in df_all_yrs_merged.columns if '_' not in col]
+
+# group columns by their suffixes
+group_cols = {suffix: df_all_yrs_merged.filter(like=suffix).columns for suffix in set(col.split('_')[-1] for col in df_all_yrs_merged.columns if '_' in col)}
+
+# slice out the dataframes based on the suffix that refers to year.  
+sliced_dfs = {}
+for suffix, group_col in group_cols.items():
+    sliced_dfs[suffix] = df_all_yrs_merged.loc[:, common_cols + group_col.tolist()]
+
+# Begin remove all suffixes (i.e. the "_" and anything to the right of it) from all dataframe headings in dictionary
+
+
+def rmv_suffix_fr_dict_dfs_cols(dict_of_dfs):
+    for df_name, df in dict_of_dfs.items():
+        # Iterate through columns in the DataFrame
+        for col in df.columns:
+            # Remove the suffix (i.e., everything to the right of and including "_")
+            new_col_name = col.split('_')[0]
+            # Rename the column in the DataFrame
+            df.rename(columns={col: new_col_name}, inplace=True)
+
+if __name__ == "__main__":
+    
+# function call
+    rmv_suffix_fr_dict_dfs_cols(sliced_dfs)
+
+
+# End remove all suffixes (i.e. the "_" and anything to the right of it) from all dataframe headings in dictionary
+
+
+
+# Sort the dictionary keys numerically
+sorted_keys = sorted(sliced_dfs.keys())
+
+df_data = pd.concat([sliced_dfs[key] for key in sorted_keys])
+
+
+# 12.31.2023 stopped here for the night
+
+# End dataframe slicing of non-common columns procedure df_all_yrs_concat
+
+"""
 # Begin slicing of df_16_17_18_19_20_21_22_23 dataframe
 # How could this be automated>? The slicing.  
 
@@ -863,7 +914,7 @@ df22 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,14,15,16,17,18,19]]
 df23 = df16_17_18_19_20_21_22_23.iloc[:,[2,3,5,6,7,8,9,10]]
 
 # End slicing of df_16_17_18_19_20_21_22_23 dataframe
-
+"""
 
 # for year 2018
 #df18 = df18_17_21_20_19.iloc[:,[0,3,4,6,7,8,9,10]]
@@ -892,16 +943,17 @@ df16_17_18_19_20_21_22_23.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_1
 
     
 # Change somehow to a df1st instead of df16 because this could mean avoiding hard coding something there.  
+"""
 df16.columns = ['STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4',  'filename']
-
+"""
 
 # Begin create df_data dataframe
 # concatenate the dataframes to one another starting with year 2016
 
 # The dataframe holding all the years in order will be called df_data
-
+"""
 df_data =pd.DataFrame(np.concatenate([df16.values, df17.values, df18.values, df19.values, df20.values, df21.values, df22.values, df23.values], axis=0), columns=df16.columns)
-
+"""
 # End create df_data dataframe
 
 # !!!
@@ -1404,6 +1456,8 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
 import warnings
@@ -1607,6 +1661,7 @@ for df_keyname, df in element_dfs_CS1.items():
 
 # boxplot cannot take a dictionary as a direct argument
 
+"""
 def boxplots_CS1(element_dfs_CS1):
     for df_keyname, df in element_dfs_CS1.items():
         
@@ -1618,7 +1673,7 @@ def boxplots_CS1(element_dfs_CS1):
 
 # Call the function to plot boxplots
 boxplots_CS1(element_dfs_CS1)
-
+"""
 # End Visually check the outliers in the dataframes of the dict
 
 
@@ -1978,7 +2033,8 @@ for key, df in dicts_yr_inserted.items():
 dicts_yr_inserted = mk_timecol_alldfs_in_dict(dicts_yr_inserted, year_column='year')
 """
     
-
+# Within new_dict_dicts_CS1:
+    
 # element_dfs_CS1: the dict of dataframes without any outliers or 1s or zeros removed- basically the dict as it is once all the merges of the different years have been made 
 
 # dict_w_outls_rmvd: the same as element_dfs_CS1 but having been run through the elim_outliers function 
@@ -1986,6 +2042,48 @@ dicts_yr_inserted = mk_timecol_alldfs_in_dict(dicts_yr_inserted, year_column='ye
 # element_dfs_CS1_0s: element_dfs_CS1 but with the zeros removed from the CS1 column
 
 # element_dfs_CS1_1s: element_dfs_CS1 but with the zeros removed from the CS1 column
+
+# Begin sort CS1 column from lowest to highest by year for each df within the dictionary of dictionaries procedure
+
+
+
+# !!!
+# From research it seems unlikely that placing the observations in ascending order will increase better the fit of the model nor create a larger R-squared.  So I'm going to comment out this function (below).
+
+
+"""
+def sort_asc_target_by_yr(dict_of_dicts, target_column, year_column):
+    # Create an empty dictionary to store sorted DataFrames
+    sorted_dfs_dict_of_dicts = {}
+
+    # Iterate through each key in the outer dictionary
+    for outer_key, inner_dict in dict_of_dicts.items():
+        # Create a new dictionary to store sorted DataFrames
+        sorted_dfs_dict = {}
+
+        # Iterate through each key in the inner dictionary
+        for inner_key, df in inner_dict.items():
+            # Sort the DataFrame by separator column and value column
+            df_sorted = df.sort_values(by=[year_column, target_column])
+
+            # Store the sorted DataFrame in the new dictionary
+            sorted_dfs_dict[inner_key] = df_sorted
+
+        # Store the inner dictionary with sorted DataFrames in the outer dictionary
+        sorted_dfs_dict_of_dicts[outer_key] = sorted_dfs_dict
+
+    return sorted_dfs_dict_of_dicts
+
+target_column = 'CS1'
+
+year_column = 'year'
+
+new_dict_dicts_CS1 = sort_asc_target_by_yr(new_dict_dicts_CS1, target_column, year_column)
+"""
+
+# !!!
+# From research it seems unlikely that placing the observations in ascending order will increase better the fit of the model nor create a larger R-squared.  So I'm going to comment out this function.
+
 
 
 # 11.22.23: make the dicts_yr_inserted list into a dictionary, attach the above keys to the four dicts already present, then attach a suffix to all the keys  attached to the dataframes in the 4 individual dictionaries, then have a function select the 3 largest (by number of rows) dataframes in each dict and perform linear regression on those 3 dataframes from each of the 4 dicts above.  
@@ -2079,12 +2177,464 @@ top3_lrgst_dfs_in_dict_dicts = find_three_lrgst_dfs_in_ea_dict(new_dict_dicts_CS
 # Then get the program to add a suffix to the keys of all the different dataframes in each dictionary based on the types of those dataframes (i.e. zeros removed, ones removed, outliers removed, none removed) 
 # Once the suffix has been added successfully, get the program to perform regression on all the top three sets of dataframes of each type (i.e. from each dict in the dict of dicts)
 
+# Begin generate_plot procedure
+# Will keep plots separate and not plot different plots one on top of the other.  
+def generate_plot(x, y):
+
+    # Create a new figure
+    plt.figure()
+
+    # Plot the data
+    plt.plot(x, y)
+
+    # Show the plot
+    plt.show()
+# End generate_plot procedure
+
+
+
+
+abmt_rc_215_no_outls = copy.deepcopy(top3_lrgst_dfs_in_dict_dicts['outls_rmvd_CS1']['abmt_rc_215'])
+
+# 01.06.2024 Good to above.  
+
+data_type = abmt_rc_215_no_outls['date_time'].dtype
+print(f"The data type of the column is: {data_type}")
+
+# the data type is datetime64[ns]
+
+# Set 'date_time' as the index
+abmt_rc_215_no_outls.set_index('date_time', inplace=True)
+
+new_abmtrc_215_df = abmt_rc_215_no_outls[['CS1']].copy()
+
+
+
+# (ABANDONED) Prior to continuing with the ARIMA model, I'm going to attempt polynomial regression with scikit-learn: (ABANDONED) so never mind.
+    
+"""
+
+# Time features
+X = np.array(new_abmtrc_215_df.index).reshape((-1, 1))
+
+
+# Target variable
+y = new_abmtrc_215_df['CS1'].values
+
+# Degree of the polynomial
+degree = 4
+
+# Create a pipeline with PolynomialFeatures and LinearRegression
+model = make_pipeline(PolynomialFeatures(degree), LinearRegression())
+
+model.fit(X, y)
+
+r_squared = model.score(X, y)
+print(f'R-squared: {r_squared}')
+
+# Predictions
+X_pred_datetime = pd.date_range(start='2016-01-01', end='2024-01-01', freq='H')
+X_pred_numeric = np.array([dt.timestamp() for dt in X_pred_datetime]).reshape(-1, 1)
+y_pred = model.predict(X_pred_numeric)
+
+
+# Plot the original data and the polynomial regression curve
+plt.scatter(new_abmtrc_215_df.index, y, label='CS1')
+plt.plot(X_pred_datetime, y_pred, color='red', label='Polynomial Regression')
+plt.xlabel('Date')
+plt.ylabel('Condition State 1 (CS1)')
+plt.legend()
+plt.show()
+
+generate_plot(X, y)
+
+
+# (ABANDONED) Different approach to the Polynomial Regression:
+    
+# R-squared: 0.004512565537564184 seems pointless
+
+transformer = PolynomialFeatures(degree=2, include_bias=False)
+
+transformer.fit(x)
+
+"""
+
+def count_occurrences(dataframes, column_name, target_entry):
+    result = {}
+    
+    for i, df in enumerate(dataframes):
+        df_name = f'Dataframe_{i+1}'  
+        
+        if column_name not in df.columns:
+            print(f"Column '{column_name}' not found in {df_name}")
+            continue
+        
+        occurrences = df[column_name].eq(target_entry).sum()
+        result[df_name] = occurrences
+
+    return result
+
+
+column_name = "EN"
+target_entry = "215"
+
+no_of_EN_215_per_orig_df = count_occurrences(dataframes, 'EN', '215')
+print(no_of_EN_215_per_orig_df)
+
+
+# ARIMA model attempt:
+    
+# using the df created above: abmt_rc_215_no_outls, that is subsequently used as a template for another dataframe that has only the two relevant columns present, those being the date_time column which serves as the index, and the CS1 column which holds the data I'm attempting to analyze.  
+
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.arima_model import ARIMA
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+
+
+plt.xlabel('Date of Observation')
+plt.ylabel('Condition State 1: Abutment Reinf. Concr. #215')
+plt.plot(new_abmtrc_215_df)
+#generate_plot()
+
+
+
+
+# Problems start below: 
+
+rolling_mean = new_abmtrc_215_df.rolling(window = 12).mean()
+rolling_std = new_abmtrc_215_df.rolling(window = 12).std()
+
+
+
+# Assuming new_abmtrc_215_df, rolling_mean, and rolling_std are DataFrame/Series objects
+
+# Create a figure with two subplots (2 rows, 1 column)
+fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True)
+
+# Plot the original data on the first subplot
+ax1.plot(new_abmtrc_215_df, color='blue', label='Original')
+ax1.legend(loc='best')
+ax1.set_title('Original Data')
+
+# Plot the rolling mean and rolling std on the second subplot
+ax2.plot(rolling_mean, color='red', label='Rolling Mean')
+ax2.plot(rolling_std, color='black', label='Rolling Std')
+ax2.legend(loc='best')
+ax2.set_title('Rolling Mean & Rolling Standard Deviation')
+
+# Adjust layout for better spacing
+plt.tight_layout()
+
+plt.show()
+
+
+
+"""
+#abmt_values = abmt_rc_215_no_outls['CS1'].values
+plt.figure()
+plt.plot(new_abmtrc_215_df, color = 'blue', label = 'Original')
+plt.plot(rolling_mean.values, color = 'red', label = 'Rolling Mean')
+plt.plot(rolling_std.values, color = 'black', label = 'Rolling Std')
+plt.legend(loc = 'best')
+plt.title('Rolling Mean & Rolling Standard Deviation')
+#fig, ax = plt.subplots()
+#plt.figure()
+
+#plt.show()
+#generate_plot()
+"""
+
+# Augmented Dickey-Fuller test:
+
+result = adfuller(new_abmtrc_215_df['CS1'])
+print('ADF Statistic: {}'.format(result[0]))
+print('p-value: {}'.format(result[1]))
+print('Critical Values:')
+for key, value in result[4].items():
+    print('\t{}: {}'.format(key, value))
+
+# Results of ADF:
+"""
+ADF Statistic: -15.256788985609738
+p-value: 4.922948143693625e-28
+Critical Values:
+	1%: -3.430482175340081
+	5%: -2.8615984187721866
+	10%: -2.56680109438272
+"""
+
+# Try taking the log of the dependent variable:
+    
+log_new_abmtrc_215_df = np.log(new_abmtrc_215_df)
+plt.figure()
+plt.plot(log_new_abmtrc_215_df)
+
+result = adfuller(log_new_abmtrc_215_df['CS1'])
+print('ADF Statistic: {}'.format(result[0]))
+print('p-value: {}'.format(result[1]))
+print('Critical Values:')
+for key, value in result[4].items():
+    print('\t{}: {}'.format(key, value))
+    
+"""
+ADF Statistic: -15.337467212380831
+p-value: 3.871395377963778e-28
+Critical Values:
+	1%: -3.430482175340081
+	5%: -2.8615984187721866
+	10%: -2.56680109438272
+"""
+
+
+
+def get_stationarity(timeseries):
+    
+    # rolling statistics
+    rolling_mean = timeseries.rolling(window=12).mean()
+    rolling_std = timeseries.rolling(window=12).std()
+    
+    # rolling statistics plot
+    original = plt.plot(timeseries, color='blue', label='Original')
+    mean = plt.plot(rolling_mean, color='red', label='Rolling Mean')
+    std = plt.plot(rolling_std, color='black', label='Rolling Std')
+    plt.figure()
+    plt.legend(loc='best')
+    plt.title('Rolling Mean & Standard Deviation')
+    plt.show(block=False)
+    
+    # Dickey–Fuller test:
+    result = adfuller(timeseries['CS1'])
+    print('ADF Statistic: {}'.format(result[0]))
+    print('p-value: {}'.format(result[1]))
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t{}: {}'.format(key, value))
+
+# Try subtracting the rolling mean:
+    
+rolling_mean = log_new_abmtrc_215_df.rolling(window=12).mean()
+log_new_abmtrc_215_df_minus_mean = log_new_abmtrc_215_df - rolling_mean
+log_new_abmtrc_215_df_minus_mean.dropna(inplace=True)
+get_stationarity(log_new_abmtrc_215_df_minus_mean)
+
+"""
+ADF Statistic: -41.73460671790362
+p-value: 0.0
+Critical Values:
+	1%: -3.430482207406924
+	5%: -2.8615984329447537
+	10%: -2.5668011019263646
+"""
+
+# Exponential decay:
+    
+rolling_mean_exp_decay = log_new_abmtrc_215_df.ewm(halflife=12, min_periods=0, adjust=True).mean()
+log_new_abmtrc_215_df_exp_decay = log_new_abmtrc_215_df - rolling_mean_exp_decay
+log_new_abmtrc_215_df_exp_decay.dropna(inplace=True)
+get_stationarity(log_new_abmtrc_215_df_exp_decay)
+
+"""
+ADF Statistic: -35.540610342346895
+p-value: 0.0
+Critical Values:
+	1%: -3.4304821780117236
+	5%: -2.8615984199529714
+	10%: -2.5668010950112174
+"""
+
+# Time shifting:
+    
+log_new_abmtrc_215_df_shift = log_new_abmtrc_215_df - log_new_abmtrc_215_df.shift()
+log_new_abmtrc_215_df_shift.dropna(inplace=True)
+get_stationarity(log_new_abmtrc_215_df_shift)
+
+"""
+ADF Statistic: -46.30701509652611
+p-value: 0.0
+Critical Values:
+	1%: -3.430482175340081
+	5%: -2.8615984187721866
+	10%: -2.56680109438272
+"""
+
+# ARIMA Model:
+
+# Start here(below) once the resampling has been fixed.
+data_type_log = log_new_abmtrc_215_df.index.dtype
+print(f"The data type of the column is: {data_type}")
+
+
+
+
+new_abmtrc_215_df_resampled = new_abmtrc_215_df.resample('H').mean()
+
+# 
+
+    
+# !!!!!!
+# 01/28/2024 good to above, need help with frequency of ARIMA model....!!!!!
+# !!!
+log_new_abmtrc_215_df.index.freq = 'H'  # Problem here
+
+decomposition = seasonal_decompose(log_new_abmtrc_215_df, freq='H') 
+
+# ARIMA model
+model = ARIMA(log_new_abmtrc_215_df, order=(2,1,2))
+results = model.fit(disp=-1)
+
+# Plotting
+plt.plot(log_new_abmtrc_215_df)
+plt.plot(results.fittedvalues, color='red')
+plt.show()
+
+
+    
+decomposition = seasonal_decompose(log_new_abmtrc_215_df) 
+model = ARIMA(log_new_abmtrc_215_df, order=(2,1,2))
+results = model.fit(disp=-1)
+plt.plot(log_new_abmtrc_215_df_shift)
+plt.plot(results.fittedvalues, color='red')
+
+
+
+
+rolling_mean.head()
+rolling_std.head()
+
+rolling_mean.tail()
+rolling_std.tail()
+
+
+def compare_indices(rolling_mean, rolling_std):
+    
+    
+    return rolling_mean.index.equals(rolling_std.index)
+
+result = compare_indices(rolling_mean, rolling_std)
+print(f"Indices match: {result}")
+
+
+
+
+    
+    
+    
+    
+# 3. Visualize the time series data.
+plt.plot(abmt_rc_215_no_outls['CS1'])
+plt.title('CS1 vs Time Series Data')
+plt.show()
+
+# 4. Check and handle stationarity.
+abmt_rc_215_no_outls['stationary_data'] = abmt_rc_215_no_outls['CS1'].diff().dropna()
+
+# 5. Determine ARIMA parameters (p, d, q)
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+plot_acf(abmt_rc_215_no_outls['stationary_data'])
+plot_pacf(abmt_rc_215_no_outls['stationary_data'], method = 'ywm')
+
+# The plot shows only one lag at 0.00, suggesting the time series may not require any AR component.  
+
+
+# 5a. How to determine the number of times raw observations are differenced:
+abmt_rc_215_no_outls['first_difference'] = abmt_rc_215_no_outls['CS1'].diff().dropna()
+
+
+# 5b. ADF Test
+from statsmodels.tsa.stattools import adfuller
+result = adfuller(abmt_rc_215_no_outls['first_difference'].dropna())
+p_value = result[1]
+
+
+# 5c. Inspect AutoCorrelation Function
+from statsmodels.graphics.tsaplots import plot_acf
+plot_acf(abmt_rc_215_no_outls['first_difference'].dropna())
+
+# Attempt to automatically determine ARIMA values (p, d, q) 
+
+import pmdarima as pm
+from statsmodels.tsa.arima.model import ARIMA
+
+# Fit an auto ARIMA model
+auto_arima_model = pm.auto_arima(abmt_rc_215_no_outls['CS1'], suppress_warnings=True)
+
+# Get the best parameters
+best_p, best_d, best_q = auto_arima_model.order
+print(f"Best (p, d, q): ({best_p}, {best_d}, {best_q})")
+
+# 6. Fit the ARIMA model
+model = ARIMA(abmt_rc_215_no_outls['CS1'], order=(5, 1, 1))
+results = model.fit()
+
+# 7. Model diagnostics
+print(results.summary())
+
+# 8. Predictions
+forecast = results.get_forecast(steps=365)
+predicted_values = forecast.predicted_mean
+
+# 9. Visualize results
+plt.plot(df['CS1'], label='Actual')
+plt.plot(predicted_values, label='Predicted', color='red')
+plt.legend()
+plt.show()
+
+
+
+
+
+
+
+"""
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf
+
+# Generate a synthetic time series with seasonality
+np.random.seed(42)
+time = pd.date_range(start='2022-01-01', end='2022-12-31', freq='D')
+seasonal_pattern = np.sin(2 * np.pi * time.dayofyear / 365)
+noise = np.random.normal(scale=0.2, size=len(time))
+ts = pd.Series(seasonal_pattern + noise, index=time)
+
+# Plot the original time series
+plt.figure(figsize=(12, 4))
+plt.plot(ts)
+plt.title('Original Time Series')
+plt.show()
+
+# Perform initial differencing
+ts_diff = ts.diff().dropna()
+
+# Plot the differenced time series
+plt.figure(figsize=(12, 4))
+plt.plot(ts_diff)
+plt.title('Differenced Time Series')
+plt.show()
+
+# Plot the ACF of the differenced time series
+plt.figure(figsize=(12, 4))
+plot_acf(ts_diff, lags=40)
+plt.title('ACF of Differenced Time Series')
+plt.show()
+"""
+
+
+
+
+
+
 
 
 
 # Begin 
 
-# Need to figure out how to perform regression on a dict of dataframes and then perform regression on a dictionary of dictionarie of dataframes.  
+# Need to figure out how to perform regression on a dict of dataframes and then perform regression on a dictionary of dictionaries of dataframes.  
 
 # When using sklearn with pandas, how does one provide the data 
 # is it possible to perform linear regression on multiple dataframes from a dictionary of dataframes  at once?  
@@ -2095,6 +2645,7 @@ top3_lrgst_dfs_in_dict_dicts = find_three_lrgst_dfs_in_ea_dict(new_dict_dicts_CS
 
 # Regression beginning here:
 
+# the argument (-1, 1) of .reshape() specifies that the x (input) array must have one column and as many rows as necessary
 
 # I am going to operate under the presumption that for years with larger TOT_QTY's of a bridge element observed in the field, that larger portions of the TOT_QTY of that element being in the CS1 condition state will result, and that for the years observed in this analysis that TOT_QTY and CS1 will be positively correlated.  I expect that this would stay relatively flat for the years observed and that for TOT_QTY and CS1 to be negatively correlated will take many more years of wear and tear on the bridges.  
 
@@ -2106,6 +2657,223 @@ top3_lrgst_dfs_in_dict_dicts = find_three_lrgst_dfs_in_ea_dict(new_dict_dicts_CS
 
 # And of course, for the years observed here (2016 thru 2023) I expect to see the CS2 CS3 and CS4 correlate negatively with CS1.  
 
+
+
+# DataFrames being considered in the top3_lrgst_dfs_in_dict_dicts
+
+# element_dfs_CS1 
+    # abmt_rc_215 Element no. 215: Abutment - Reinforced Concrete 
+        # Unit of Measurement: Linear Feet
+    # topFlg_rc_16 Element no. 16: Top Flange - Reinforced Concrete
+        #  Unit of Measurement: Square Feet
+    # col_rc_205 Element no. 205: Column - Reinforced Concrete
+        #  Unit of Measurement: Each
+        
+# element_dfs_CS1_0s
+    # abmt_rc_215 Element no. 215: Abutment - Reinforced Concrete
+        # Unit of Measurement: Linear Feet
+    # topFlg_rc_16 Element no. 16: Top Flange - Reinforced Concrete
+        #  Unit of Measurement: Square Feet
+    # br_rc_331 Element no. 331: Bridge Railing - Reinforced Concrete
+        #  Unit of Measurement: Feet
+        
+# element_dfs_CS1_1s
+    # topFlg_rc_16 Element no. 16: Top Flange - Reinforced Concrete
+        #  Unit of Measurement: Square Feet
+    # abmt_rc_215 Element no. 215: Abutment - Reinforced Concrete
+        # Unit of Measurement: Linear Feet
+    # slab_rc_38 Element no. 38 - Slab - Reinforced Concrete
+        # Unit of Measurement: Square Feet
+
+# outls_rmvd_CS1
+    # abmt_rc_215 Element no. 215: Abutment - Reinforced Concrete
+        # Unit of Measurement: Linear Feet
+    # topFlg_rc_16 Element no. 16: Top Flange - Reinforced Concrete
+        #  Unit of Measurement: Square Feet
+    # br_rc_331 Element no. 331: Bridge Railing - Reinforced Concrete
+        #  Unit of Measurement: Feet
+        
+# Linear Regression using statsmodels
+    
+import statsmodels.api as sm
+import matplotlib.dates as mdates
+
+# Make top3_lrgst_dfs_in_dict_dicts into a nested dictionary:
+    
+#top3_lrgst_diff_categories = {outer_key: inner_dict for outer_key, inner_dict in top3_lrgst_dfs_in_dict_dicts.items()}
+
+
+
+
+
+
+
+
+
+"""
+if 'date_time' in abmt_rc_215_no_outls.columns:
+    value = abmt_rc_215_no_outls['date_time']
+else:
+    print("Column does not exist")
+"""
+
+"""
+abmt_rc_215_no_outls['date_time'] = pd.to_datetime(abmt_rc_215_no_outls['date_time']).astype(np.int64) // 10**9
+"""
+
+
+abmt_rc_215_no_outls['date_time'] = pd.to_datetime(abmt_rc_215_no_outls['date_time'], unit='ns')
+
+
+abmt_rc_215_no_outls['hour'] = abmt_rc_215_no_outls['date_time'].dt.hour
+
+X = sm.add_constant(abmt_rc_215_no_outls[['hour']])
+
+y = abmt_rc_215_no_outls['CS1']
+
+model = sm.OLS(y, X).fit()
+
+# Print the model summary
+print(model.summary())
+
+
+
+#abmt_rc_215_no_outls['date_time'] = pd.to_datetime(abmt_rc_215_no_outls['date_time']).astype(int)
+
+#abmt_rc_215_no_outls['date_time'] = abmt_rc_215_no_outls['date_time'].apply(lambda x: x.toordinal())
+
+
+#print(abmt_rc_215_no_outls.columns)
+
+"""
+X = sm.add_constant(abmt_rc_215_no_outls[['date_time']]) #272
+print(X.shape)
+print(X.head())
+
+y = np.array(abmt_rc_215_no_outls['CS1']) #17
+"""
+#print(y.index)
+#print(X.index)
+
+#y, X = y.align(X, join='inner')  # 'inner' keeps only the common indices
+
+#y = y.reset_index(drop=True)
+#X = X.reset_index(drop=True)
+
+
+
+# Step 1: Drop rows with missing values (original length of dataframe 49534)
+#abmt_rc_215_no_outls.dropna(subset=['CS1', 'date_time'], inplace=True)
+
+# Step 2: Set 'date_time' as the index for both X and y
+"""
+X.set_index('date_time', inplace=True)
+y = abmt_rc_215_no_outls.set_index('date_time')['CS1']
+
+#X = X.loc[y.index]
+
+# Fit a linear regression model
+# below causing the indices to misalign
+model = sm.OLS(y, X).fit()
+
+print(model.summary())
+
+params = model.params
+
+#slope, intercept = model.params
+
+slope = params[1]
+intercept = params[0]
+"""
+
+#ValueError: The indices for endog and exog are not aligned
+
+# Predictions, confidence intervals, and prediction intervals
+predictions = model.get_prediction(X)
+pred_mean = predictions.predicted_mean
+pred_ci = predictions.conf_int()
+pred_pi = predictions.conf_int(alpha=0.05, obs=True)
+
+# Plot the data and regression line
+plt.scatter(X.index, y, label='Observations')
+
+# Format the x-axis as dates
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+# Rotate x-axis labels for better visibility (optional)
+#plt.gcf().autofmt_xdate()
+
+# Plot the mean line
+plt.plot(X.index, pred_mean, color='red', label='Mean Line')
+
+# Plot the confidence interval
+plt.fill_between(X.index, pred_ci[:, 0], pred_ci[:, 1], color='blue', alpha=0.3, label='Confidence Interval (95%)')
+
+# Plot the prediction interval
+plt.fill_between(X.index, pred_pi[:, 0], pred_pi[:, 1], color='green', alpha=0.3, label='Prediction Interval (95%)')
+
+# Customize x-axis ticks and labels
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+
+
+# Display the equation of each line on the plot
+#plt.text(0.1, 0.9, f'Line (abmt_rc_215_no_outls): y = {slope1:.2f}x + {intercept1:.2f}', transform=plt.gca().transAxes)
+#plt.text(0.1, 0.8, f'Line (element_dfs_no_outl): y = {slope2:.2f}x + {intercept2:.2f}', transform=plt.gca().transAxes)
+
+
+
+plt.xlabel('Date of Observation')
+plt.ylabel('CS1')
+plt.legend()
+plt.show()
+
+"""
+Make the equation of the line known in the plot.
+Make some function to get the values of x at any y.
+Make use of classes to do the regression.
+Make the different regression types available through the logic- or just as a group of things the program accomplishes before regression function finishes.
+Run ADF test.
+Make residuals plots.
+Check Stationarity.
+"""
+
+
+for set_key, inner_dict in top3_lrgst_dfs_in_dict_dicts.items():
+    print(f"Linear Regression for Set: {set_key}")
+    for df_key, df in inner_dict.items():
+        X = df[['date_time']]
+        y = df['CS1']
+
+        
+        # Create and fit the linear regression model using statsmodels
+        model = sm.OLS(y, X).fit()
+
+        # Print the results or store them as needed
+        print(f"Linear Regression for DataFrame: {df_key}")
+        print(model.summary())
+
+        # Scatter plot with a line of best fit
+        plt.scatter(df['date_time'].astype(float64), y, label='Condition State 1')
+        plt.plot(df['date_time'].astype(float64), model.predict(X), color='red', label='Line of Best Fit')
+        plt.xlabel('Time')
+        plt.ylabel('CS1 (Condition State 1)')
+        plt.title(f'Scatter Plot and Line of Best Fit - Set: {set_key}, DataFrame: {df_key}')
+        plt.legend()
+        plt.show()
+        print("\n")
+
+
+# Perform Augmented Dickey-Fuller Test
+
+
+from statsmodels.tsa.stattools import adfuller
+
+
+
+    
+
+# End Regression
 
 
 # !!!
