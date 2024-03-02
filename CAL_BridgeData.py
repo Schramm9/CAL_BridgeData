@@ -4,18 +4,41 @@ Created on Thu Oct 21 16:29:08 2021
 @author: Chris
 """
 
+import hashlib
+
+def calculate_hash(file_path):
+    with open(file_path, 'rb') as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+# Example usage:
+hash_value = calculate_hash(r'bridgeEnv\Lib\site-packages\numpy-1.26.4-cp39-cp39-win_amd64.whl')
+
+print(hash_value)
+    # e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+
 import pandas as pd
+    # pip install --upgrade pandas
+        # pytz, tzdata, six, numpy, python-dateutil, pandas
 import xml.etree.ElementTree as et
+    # package elementpath
 
 import collections
+    # conda update conda
+    # conda update python
 
 import numpy as np
+    # pip install --upgrade pandas
 import numpy.ma as ma
+    # 
 import matplotlib.pyplot as plt
-
+     # pip install --upgrade matplotlib
+         #  zipp, pyparsing, pillow, packaging, kiwisolver, fonttools, cycler, contourpy, importlib-resources, matplotlib
 from datetime import date, datetime, timedelta
+    # pip install --upgrade datetime
+        # zope.interface, datetime
 import datetime as dt
-# import radar
+
 
 import copy
 
@@ -30,13 +53,36 @@ from functools import reduce
 import matplotlib.dates as mpl_dates
 from matplotlib.dates import date2num
 import seaborn as sns
+    # pip install --upgrade seaborn
 import time
+
+
+import matplotlib.ticker as ticker
+
+import statsmodels.api as sm
+    # scipy, patsy, statsmodels
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.arima_model import ARIMA
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import math
+import warnings
+
+import re
+
+# import radar
 
 """
 start_time = time.time()
 """
 
-import matplotlib.ticker as ticker
 
 # Read in the XML files as they were downloaded from the FHWA.  
 
@@ -1454,15 +1500,7 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
 # simple linear regression for deck_rc or reinforced concrete deck
 # !!!
 
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-import math
-import warnings
 
-import re
 
 sns.set(style="whitegrid", color_codes=True)
 
@@ -2048,7 +2086,7 @@ dicts_yr_inserted = mk_timecol_alldfs_in_dict(dicts_yr_inserted, year_column='ye
 
 
 # !!!
-# From research it seems unlikely that placing the observations in ascending order will increase better the fit of the model nor create a larger R-squared.  So I'm going to comment out this function (below).
+# From research it seems unlikely that placing the observations in ascending order will increase or better the fit of the model nor create a larger R-squared.  So I'm going to comment out this function (below).
 
 
 """
@@ -2281,17 +2319,16 @@ target_entry = "215"
 no_of_EN_215_per_orig_df = count_occurrences(dataframes, 'EN', '215')
 print(no_of_EN_215_per_orig_df)
 
+# !!!
+
+
+
+
 
 # ARIMA model attempt:
     
 # using the df created above: abmt_rc_215_no_outls, that is subsequently used as a template for another dataframe that has only the two relevant columns present, those being the date_time column which serves as the index, and the CS1 column which holds the data I'm attempting to analyze.  
 
-import statsmodels.api as sm
-from statsmodels.tsa.stattools import adfuller
-from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.arima_model import ARIMA
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
 
 
 
@@ -2461,6 +2498,9 @@ Critical Values:
 	10%: -2.56680109438272
 """
 
+#prior to the ARIMA model it's important to make a map of all the bridge locations with the outline of the state shown and color code the locations based on the percentage of the bridge element being mapped based on the percentage of the element that has a condition state of CS1.  (i.e. make the locations with the lowest percentage at CS1 appear in red- because those will be the locations most likely to transtion to a CS2 conditon sooner than those with a larger CS1 percentage)
+
+                       
 # ARIMA Model:
 
 # Start here(below) once the resampling has been fixed.
@@ -3477,7 +3517,7 @@ plot_dataframes_to_webpage(filtered_dfs, 'output.html')
 
 
 
-
+"""
 import webbrowser
 
 def export_plot_to_html(filtered_dfs, '.'):
@@ -3493,7 +3533,7 @@ def export_plot_to_html(filtered_dfs, '.'):
         # Open the saved HTML file in Google Chrome
         webbrowser.get("chrome").open_new_tab(output_file)
 
-
+"""
 
 
 
