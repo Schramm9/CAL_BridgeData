@@ -4,7 +4,7 @@ Created on Thu Oct 21 16:29:08 2021
 @author: Chris
 """
 
-    
+
 import pandas as pd
     # pip install --upgrade pandas
     # pytz, tzdata, six, numpy, python-dateutil, pandas
@@ -27,6 +27,7 @@ from datetime import date, datetime, timedelta
     # zope.interface, datetime
 import datetime as dt
     
+#import plotly.graph_objects as go
     
 import copy
     
@@ -66,7 +67,15 @@ import math
 import warnings
     
 import re
-    
+
+#import geopandas as gpd
+
+import json
+import plotly.graph_objects as go
+
+#import folium
+
+
 # import radar
     
 """
@@ -630,8 +639,9 @@ def check_array_content(*arrays):
     
     
 # BEGIN Merge different dataframe years procedure - make the merge and possibly the creation of the df_all_yrs_merged variable merged dataframe,  and perhaps make the function doing the merge can start by first merging the largest df be merged with the next largest, the result of the first merge then being merged to the next largest remaining df, and so on iteratively until all dfs have been merged, the goal being to make the resulting df contain the largest possible number of bridges common among the group of dfs being merged.  
-    
-    
+ 
+   
+# Creates df_all_yrs_merged variable:
 
 def merge_dataframes_by_length(dict_of_dfs, common_columns):
     # Sort dataframes by length in descending order
@@ -655,7 +665,49 @@ df_all_yrs_merged = merge_dataframes_by_length(filtered_df_nameToDF, common_colu
 print(df_all_yrs_merged)
 
 # 01-29-2024 Make the additions/changes to the merge here- use the function above, call it again, create a new variable NOT called df_all_yrs_merged and call the function on the same dict of dataframes (filtered_df_nameToDF) but only call it on the single column STRUCNUM this time.  Then have the function call again and create the new dict of dataframes (with the aforementioned new variable name) and then filter all the different parts as was done previously- and make the new dict of dataframes the same as before, but with the extra bridge elements that will result, and the wherewithal to filter all the different EN's out, a larger set of data will result, then use this later to compare or make the difference of entries into a different variable and use to add to the dfs as needed to make the frequency between the observations into even numbers of hours or minutes without any digits to the right of the decimal to better run the ARIMA model.
-    
+
+
+# Begin getting lat and long coordinates procedure:
+
+xlsx_path = 'CA15.xlsx'
+
+# Read only the STRUCNUM 'Latitude' and 'Longitude' columns from the Excel file into a pandas DataFrame
+
+loc_data = pd.read_excel(xlsx_path, usecols=['STRUCTURE_NUMBER_008', 'LAT_016', 'LONG_017'])
+
+print(loc_data.dtypes)
+
+# Need to make the latitude and longitude data useable, i.e. there are no decimals in the coordinates as they are given in the download from the FHWA.  
+loc_data['LAT_016'] = loc_data['LAT_016'].astype(str)
+# Place the decimal to the right of the second digit in the latitude column:
+loc_data['LAT_016'] = loc_data['LAT_016'].apply(lambda x: x[:2] + '.' + x[2:])
+
+loc_data['LONG_017'] = loc_data['LONG_017'].astype(str)
+
+# longitude column, to right of third digit:
+loc_data['LONG_017'] = loc_data['LONG_017'].apply(lambda x: x[:3] + '.' + x[3:])
+
+
+# Convert types of lat and long data to numeric to allow for proper display on map
+loc_data['LONG_017'] = pd.to_numeric(loc_data['LONG_017'], errors='coerce')
+
+loc_data['LAT_016'] = pd.to_numeric(loc_data['LAT_016'], errors='coerce')
+
+loc_data['LONG_017'] = loc_data['LONG_017'] * -1
+
+# rename columns prior to merge of data into df_all_yrs_merged STRUCTURE_NUMBER_008 LAT_016 LONG_017 
+
+cols_loc_data = {'STRUCTURE_NUMBER_008': 'STRUCNUM', 'LAT_016': 'LAT', 'LONG_017': 'LONG'}
+
+loc_data.rename(columns=cols_loc_data, inplace=True)
+
+# Check of data types
+print(loc_data.dtypes)
+
+
+
+
+
 """
 df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
 """
@@ -1626,7 +1678,7 @@ for key, counts in one_occurrences.items():
 
 
 # Is there a way to slice off one column and then copy another and attach it to the slice?
-# Slice the dataframes to allow the original data in the dataframe when first pulled from the element_dfs dictionary to stay the same except for the column sliced off - make the data from a single CS category into a numpy array and make the 
+# Slice the dataframes to allow the original data in the dataframe when first pulled from the element_dfs dictionary to stay the same except for the column sliced off - make the data from a single CS category into a numpy array and make the (03-30-2024, just noticed that I trailed off here and didn't finish the thought...)
 
 # What is the overall procedure to get the data from a single column (CS1 most likely) and split it off from the original dataframe inside the dict, most likely into another dict wherein the rest of the dataframes will be sliced off similarly-
 
@@ -1647,6 +1699,10 @@ for key, counts in one_occurrences.items():
 # And lastly element_dfs_CS1_no_outls (or dict_w_outls_rmvd)
 
 
+
+# !!!
+# Move the import below later!
+from model1 import rem_cols_mk_df_model1
 
 
 
@@ -1681,6 +1737,8 @@ for df_keyname, df in element_dfs_CS1.items():
 # The original dictionary of DataFrames (element_dfs) remains unchanged.
 
 # End remove columns from element_dfs except for CS1
+
+
 
 
 # Begin Visually check the outliers in the dataframes of the dict
@@ -2311,8 +2369,108 @@ print(no_of_EN_215_per_orig_df)
 
 # !!!
 
+# Map of all the possible California Bridges:
+
+# Begin plotly attempt
 
 
+
+# Get the current working directory (where the script is located)
+cwd = os.getcwd()
+
+# Specify the relative path to the GeoJSON file
+geojson_path = os.path.join(cwd, 'GeoJSON', 'California_State_Boundary.geojson')
+
+# Read GeoJSON file
+with open(geojson_path) as f:
+    geojson_data = json.load(f)
+
+# Extract coordinates from GeoJSON
+try:
+    state_border = geojson_data['features'][0]['geometry']['coordinates'][0]
+    print("Coordinates extracted successfully:")
+    print(state_border)
+except KeyError:
+    print("Error: Invalid GeoJSON format or missing coordinates.")
+    exit(1)
+
+# Plotting the state border
+fig = go.Figure(go.Scattermapbox(
+    mode="lines",
+    lon=[coord[0] for coord in state_border],
+    lat=[coord[1] for coord in state_border],
+    marker={'size': 10},
+    line=dict(width=2, color='blue'),
+))
+
+# Update layout with mapbox style and centering it to the state
+fig.update_layout(
+    mapbox_style="carto-positron",
+    mapbox_zoom=5,  # Adjust zoom according to your need
+    mapbox_center={"lat": 37.0902, "lon": -95.7129},  # Center of the USA
+)
+
+# Show the plot
+fig.show()
+
+
+# End plotly attempt
+
+# Create figure for map.
+state_map_all = go.Figure()
+
+# Add bridge locations as scattermapbox trace
+state_map_all.add_trace(go.Scattermapbox(
+    lat=loc_data['LAT'],  # Latitude data from your DataFrame
+    lon=loc_data['LONG'],  # Longitude data from your DataFrame
+    mode='markers',
+    marker=go.scattermapbox.Marker(
+        size=9,
+        color='blue',
+        opacity=0.7
+    ),
+    text=loc_data['STRUCNUM'],  # Tooltip text
+    hoverinfo='text'
+))
+
+# Customize layout
+state_map_all.update_layout(
+    mapbox=dict(
+        style="stamen-terrain",  # Map style
+        center=dict(
+            lat=36.7783,  # Center latitude of California
+            lon=-119.4179  # Center longitude of California
+        ),
+        zoom=6  # Zoom level
+    )
+)
+
+# Display the map
+state_map_all.show()
+
+# Save the map as an HTML file
+state_map_all.write_html('california_bridge_map_plotly.html')
+
+
+# End Map procedure
+    
+
+
+
+"""
+# Begin folium mapping attempt
+state_map_all = folium.Map(location=[36.7783, -119.4179], zoom_start=6)
+
+# state outline:
+folium.GeoJson('california.geojson', name='geojson').add_to(state_map_all)
+
+for index, row in loc_data.iterrows():
+    folium.Marker([row['LAT'], row['LONG']], popup=row['STRUCNUM']).add_to(state_map_all)
+
+# make an HTML file of the map:
+state_map_all.save('state_map_all_CAL')
+# End folium mapping attempt
+"""
 
 
 # ARIMA model attempt:
