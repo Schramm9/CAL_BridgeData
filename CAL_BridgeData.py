@@ -1,9 +1,10 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 21 16:29:08 2021
 @author: Chris
 """
-
+# Note: the word "bridge" and the term STRUCNUM, STRUCNUM being a column heading/name in the raw data may be used somewhat interchangeably in the comments of this application.  
 
 import pandas as pd
     # pip install --upgrade pandas
@@ -68,7 +69,8 @@ import warnings
     
 import re
 
-#import geopandas as gpd
+import geopandas as gpd
+from shapely.geometry import Point
 
 import json
 import plotly.graph_objects as go
@@ -704,9 +706,18 @@ loc_data.rename(columns=cols_loc_data, inplace=True)
 # Check of data types
 print(loc_data.dtypes)
 
+# move LAT column to avoid problems
+moving_col = 'LAT'
 
+# create a new list of column names in the desired order
 
+moving_col_new_pos = 2
 
+cols_list = list(loc_data.columns)
+
+cols_list.insert(moving_col_new_pos, cols_list.pop(cols_list.index(moving_col)))
+
+loc_data = loc_data[cols_list]
 
 """
 df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
@@ -933,11 +944,11 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
     
 # Begin dataframe slicing of non-common columns procedure
 df_all_yrs_merged
-    
-    
+
+
 # 12.31.2023 stopped here for the night
     
-    
+  
 # identify the columns without suffixes (i.e. no '_')
 common_cols = [col for col in df_all_yrs_merged.columns if '_' not in col]
     
@@ -976,7 +987,48 @@ sorted_keys = sorted(sliced_dfs.keys())
 
 df_data = pd.concat([sliced_dfs[key] for key in sorted_keys])
 
-    
+print(loc_data.dtypes)
+print(df_data.dtypes)
+
+print("df_data STRUCNUM:", df_data['STRUCNUM'].unique())
+print("loc_data STRUCNUM:", loc_data['STRUCNUM'].unique())
+
+# !!!
+strucnum_df_data_list = sorted(df_data['STRUCNUM'].tolist())
+# !!!
+
+strucnum_loc_data_list = sorted(loc_data['STRUCNUM'].tolist())
+
+unique_strucnum_df_data = list(set(strucnum_df_data_list))
+
+unique_loc_data = list(set(strucnum_loc_data_list))
+
+# is there a way to check only individual entries in either a list or a dataframe?  i.e. make the entries to check just singular- making the entry to check an individual entry as in the previous solutions above- so that each time an entry is checked if the entry is found it is placed into a list or dataframe called found_entries?
+
+# The STRUCNUM entries in the loc_data are perhaps actually corresponding to the entries in the df_data dataframe- however they may need to be matched on a basis other than just a straight match between the two columns- there may need to be a removal of the first couple of characters from the column of entries in the loc_data column and then check for any matches from there- there may also need to be a removal of some superfluous characters from the column STRUCNUM in the df_data dataframe also- probably not the CA that seems to be at the front of every entry in loc_data though...
+
+# all that stuff directly above may not be necessary- but with regard to the data types of the two 'STRUCNUM' columns- they probably just need to be made into strings. 
+
+loc_data['STRUCNUM'] = loc_data['STRUCNUM'].astype(str)
+
+df_data['STRUCNUM'] = df_data['STRUCNUM'].astype(str)
+
+print(df_data.dtypes)
+
+df_data['STRUCNUM'] = df_data['STRUCNUM'].str.strip()
+
+loc_data['STRUCNUM'] = loc_data['STRUCNUM'].str.strip()
+
+
+"""print(unique_loc_data.dtypes)
+
+print(unique_strucnum_df_data.dtypes)"""
+
+df_data = pd.merge(loc_data, df_data, on='STRUCNUM', how="inner")
+
+
+
+
 # 12.31.2023 stopped here for the night
     
 # End dataframe slicing of non-common columns procedure df_all_yrs_concat
@@ -1049,14 +1101,16 @@ df_data =pd.DataFrame(np.concatenate([df16.values, df17.values, df18.values, df1
 # Convert the columns to numeric - admittedly the filename probably does not need to be numeric, but I'm trying to get this done.
     
 df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']] = df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']].apply(pd.to_numeric, errors='coerce')
-    
+
     
 # Divide the CS1 thru CS4 by TOTALQTY to make the condition state into a percentage of the total element per bridge
     
 df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_data.TOTALQTY, axis=0)
     
-    
-    
+# 05.12.2024
+
+
+
 # el_names means Element Names
 # https://stackoverflow.com/questions/39502079/use-strings-in-a-list-as-variable-names-in-python
         
@@ -1067,11 +1121,11 @@ df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_d
     
     
 """ 06/07/22 """
-    
+
     
     
 # Filter the rows out of the df_data dataframe based on the largest possible data set where each STRUCNUM has all the EN attached to it observed over all years being considered- i.e. the set of EN attached to a particular STRUCNUM is the set of EN not necessarily attached to or observed in one particular year- but the most EN observed over all the years of data being considered (eliminating repeats).
-    
+
 # Begin filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
     
 # Get unique element numbers (el_numbers) from the 'EN' column
@@ -1082,10 +1136,10 @@ el_numbers = df_data['EN'].unique()
     
     
     
-# Create an empty dictionary to store the smaller dataframes
+# Create an empty dictionary to store the smaller, individual element dataframes
     
 element_dfs = {}
-    
+
     
 # Iterate over the element numbers and create smaller dataframes filtered out based on the individual element numbers
     
@@ -1094,15 +1148,15 @@ for el_number in el_numbers:
         
     element_df = getattr(df_data.loc[df_data['EN'] == el_number], 'copy')()    
     element_dfs[el_number] = element_df
-    
-    
+
+
 # End filter individual dataframes from df_data (concatenated overall dataframe) procedure: 
-    
-    
-    
-    
+
+
+
+
 # !!! 
-    
+
 # 06/17/2023: To line of code above: element_dfs[el_number] = element_df, the code is working i.e. the dfs are parsed in correctly, the merge of the respective years of the dataframes are occurring correctly, 
     
     
@@ -1234,8 +1288,9 @@ el_names = {'12': 'deck_rc',
             '520': 'rsps',
             '521': 'cpc',
             '522': 'deck_memb'}
-    
-    
+
+
+
 """
 # Deck and slabs, 13 elements
     
@@ -1606,12 +1661,272 @@ add_key_desc(element_dfs, el_names)
 
 # End add_key_desc putting value from el_names in front of keys of element_dfs dictionary
 
+# Mk 5-21-24
 
-# I plan to use the CS1 condition state data as the data I will investigate for now.  I feel it necessary to point this out because the functions I plan to use may tend to remove the rows of data from the dataframe when they are not applicable such as in the case of outliers or as I have been doing below removing 1s and zeros.  
+# 08.23.24
+# Going to make a decision about how to proceed with this project: I am going to start analyzing the CS_2 data from the sets.  I expect it to have a more noticeable trend as time goes by and to be the most consequential of the data.  I do not expect the CS_1 data to have much in the way of a trend because it is the beginning state of all the different elements in the bridges.  
+# The other decision I'm going to make at this time (08.23.24) is to only perform an analysis on the Reinforced Concrete Abutments of the bridges.  This element represents the largest set of elements in the State of California, much as it would in any dataset of highway bridges- all bridges need abutments, as these are the foundation of the bridge where it starts and ends- and in many civil and structural engineering tasks the foundation is always one of the most critical elements. And even if there are no interior supports for the span of a  bridge, the bridge will have abutments at each end of its span.   
+
+
+
+# Begin plotting of the boundaries of the state procedure
+#!!!
+# Plot state boundaries: still not getting the points and the boundaries to show on the plot (presently only points), and the origin way off to the right appears and makes most of the plot taken up with empty space.  
+
+
+# make a dataframe of the lat and long of the bridges that are in our dataset, variable name is bridge_loc_data:
+bridge_loc_data = loc_data[loc_data['STRUCNUM'].isin(unique_strucnum_df_data)]
+
+
+# Load the boundary file, this creates the GeoDataFrame for the boundaries of the applicable state, variable name is gdf_bound (Geo Data Frame boundaries).  
+gdf_bound = gpd.read_file('CA_boundaries/ca_state_boundaries.shp')
+
+
+print("State Boundaries GeoDataFrame CRS:", gdf_bound.crs)
+# Above line of code gives CRS of EPSG:3857
+
+# however the statement below points to the format of the CRS of the data being in EPSG:4326 already, and the CRS in the data as it was retreived being mislabeled.  
+print(gdf_bound.total_bounds)
+# The above results in the following output: [-124.482003   32.529508 -114.131211   42.009503]
+
+# Using the 'set_crs' method can change the label in the set of boundary data:
+
+# Set the CRS to EPSG:4326 but do not perform any transformation of the data.
+gdf_bound.set_crs(epsg=4326, inplace=True, allow_override=True)
+
+# CRS of the boundaries of the state are in degrees- but CRS is given as EPSG:3857- for degrees the CRS should be EPSG:4326.  
+
+print(gdf_bound.crs)  # Should be EPSG:4326
+print(gdf_bound.total_bounds)  # Should be: [-124.482003, 32.529508, -114.131211, 42.009503]
+
+
+if gdf_bound.crs != 'EPSG:4326':
+    gdf_bound = gdf_bound.to_crs('EPSG:4326')
+
+# Find out the headers of the boundaries dataframe:
+print("State Boundaries GeoDataFrame columns:", gdf_bound.columns)
+
+
+# give the state a name, the column holding the name of the state is just called 'NAME'
+
+name_of_state = 'California'
+state_gdf = gdf_bound[gdf_bound['NAME'] == name_of_state]
+
+# check that CRS is still the same for the new variable, state_gdf:
+print("state_gdf CRS:", state_gdf.crs)
+
+
+# from the above checks of the data, the values of the boundaries are set is degrees, as is customary of EPSG:4326 (WGS84) and NOT like would be expected for EPSG:3857 (Web Mercator)
+
+# Make a GeoDataFrame of the applicable coordinates of the bridge locations  within the state boundaries:
+
+# Check the headers of the bridge_loc_data dataframe:
+print("Bridge Location Data:", bridge_loc_data.columns)
+    
+
+geometry = [Point(xy) for xy in zip(bridge_loc_data['LONG'], bridge_loc_data['LAT'])]
+
+print("List of Point objects:")
+for point in geometry:
+    print(point)
+
+# bridge_loc_data is the locations of the bridges within the boundaries of the state.  Make a GeoDataFrame to hold those coordinate points marking the bridge locations that are of interest, i.e. the bridges that are in the df_data DataFrame, the bridges that have been merged from all years of data being examined.  
+bdg_coords_df = gpd.GeoDataFrame(bridge_loc_data, crs='EPSG:4326', geometry=geometry)
+
+
+print("bdg_coords_df CRS:", bdg_coords_df.crs)
+# The above code originally returned a value of None.  i.e. Naive coordinate system.  
+
+#
+
+"""
+bdg_coords_df = bdg_coords_df.set_crs('EPSG:3857')
+"""
+#bdg_coords_df = bdg_coords_df.to_crs('EPSG:3857')
+
+# check the CRS for the new variable, geo_df:
+print("bdg_coords_df CRS:", bdg_coords_df.crs)
+"""
+if state_gdf.crs != bdg_coords_df.crs:
+    bdg_coords_df = bdg_coords_df.to_crs(state_gdf.crs)
+"""
+# Make plots using the naive CRS and with crs set to EPSG:3857 and see if they are different?
+
+"""
+# Plot the state boundaries
+ax = state_gdf.plot(color='lightgrey', edgecolor='black')
+
+# Calculate and plot centroids (if needed)
+state_gdf['centroid'] = state_gdf.geometry.centroid
+state_gdf['centroid'].plot(ax=ax, color='red')
+
+# Plot the points
+bdg_coords_df.plot(ax=ax, color='blue', marker='o', markersize=50)
+
+plt.show()
+"""
+
+print(state_gdf.total_bounds)
+
+# Ensure both GeoDataFrames are using the same CRS
+bdg_coords_df = bdg_coords_df.to_crs(state_gdf.crs)
+
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Optional: Set limits to focus on the area of interest
+ax.set_xlim(state_gdf.total_bounds[0], state_gdf.total_bounds[2])  # Set x-limits to state's bounds
+ax.set_ylim(state_gdf.total_bounds[1], state_gdf.total_bounds[3])  # Set y-limits to state's bounds
+
+
+# Plot the boundaries of the state
+state_gdf.plot(ax=ax, edgecolor='black', facecolor='grey')
+
+# Plot the LAT and LONG of the applicable bridges
+bdg_coords_df.plot(ax=ax, color='red', marker='o', markersize=100)
+
+#ax.set_aspect('equal')
+
+# Additional plot settings
+plt.title(f'Boundaries of {name_of_state} w/ applicable bridge location LAT & LONG')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+
+plt.show()
+
+# Check for coordinates outside of the boundaries:
+minx, miny, maxx, maxy = state_gdf.total_bounds
+print(f"State Bounds: minx={minx}, miny={miny}, maxx={maxx}, maxy={maxy}")
+
+# Check if any bridge points fall outside these bounds
+outside_bounds = bdg_coords_df[
+    (bdg_coords_df.geometry.x < minx) |
+    (bdg_coords_df.geometry.x > maxx) |
+    (bdg_coords_df.geometry.y < miny) |
+    (bdg_coords_df.geometry.y > maxy)
+]
+
+print("Bridge points outside the state bounds:")
+print(outside_bounds)
+
+# The above shows that 448 of the coordinates fall outside of the total_bounds.  
+
+# In the interest of expediency I'm going to just remove those from the dataset and keep on without them.  Although I beleive the total_bounds will not eliminate the coordinates that are just outside the boundaries to the West of the boundaries, as the boundaries to the North of those coordinates will still be with the bounds.  
+
+# Use within method to find only point inside the boundaries of the state:
+w_in_bounds_bdg_coords_df = bdg_coords_df[bdg_coords_df.within(state_gdf.unary_union)]
+
+# The above method removed more of the coordinates than was suggested by the method above that set the total_bounds as the means of determining which points were within the state boundaries. Removes 924 coordinates.  
+
+# Plot the boundaries and points again:
+
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Plot the state boundaries
+state_gdf.plot(ax=ax, edgecolor='black', facecolor='none')
+
+# Plot the filtered bridge coordinates
+w_in_bounds_bdg_coords_df.plot(ax=ax, color='red', marker='o', markersize=100)
+
+# Set equal aspect ratio
+ax.set_aspect('equal')
+
+# Additional plot settings
+plt.title(f'Boundaries of {name_of_state} w/ applicable bridge location LAT & LONG')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+
+plt.show()
+
+# 09.03.24 12:30p Making plots of one with the coordinates that fall outside the boundaries (facecolor=grey, followed by another (w/o any facecolor) that has only coordinates that fall inside the boundaries.  
+
+# Begin find distance from coordinates to the nearest intersection with the West Coast:
+
+
+
+
+
+
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Plot the boundaries of the state
+state_gdf.plot(ax=ax, edgecolor='black', facecolor='grey')
+
+# Plot the LAT and LONG of the applicable bridges
+bdg_coords_df.plot(ax=ax, color='red', marker='o', markersize=100)
+
+
+# Additional plot settings
+plt.title(f'Boundaries of {name_of_state} w/ applicable bridge location LAT & LONG')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.show()
+
+
+
+
+"""
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+# Load the shapefile containing state boundaries
+states_gdf = gpd.read_file('path/to/shapefile.shp')
+
+# Load the second group of coordinates (assuming it's in a CSV or another source)
+# For this example, let's assume the coordinates are in a pandas DataFrame
+import pandas as pd
+
+# Example DataFrame with coordinates (longitude, latitude)
+points_df = pd.DataFrame({
+    'longitude': [-99.9018, -95.7129],  # Example longitudes
+    'latitude': [31.9686, 37.0902]      # Example latitudes
+})
+
+# Convert the DataFrame to a GeoDataFrame, assuming the coordinates are in EPSG:4326 (WGS 84)
+points_gdf = gpd.GeoDataFrame(
+    points_df, 
+    geometry=gpd.points_from_xy(points_df.longitude, points_df.latitude),
+    crs='EPSG:4326'  # Ensure the CRS matches the state boundaries
+)
+
+# Ensure the CRS of both datasets match
+points_gdf = points_gdf.to_crs(states_gdf.crs)
+
+# Plot the state boundaries
+ax = states_gdf.plot(color='lightgrey', edgecolor='black')
+
+# Calculate and plot centroids (if needed)
+states_gdf['centroid'] = states_gdf.geometry.centroid
+states_gdf['centroid'].plot(ax=ax, color='red')
+
+# Plot the points
+points_gdf.plot(ax=ax, color='blue', marker='o', markersize=50)
+
+plt.show()
+"""
+
+
+# 08.31.2024 5:57p the coordinates of the bridges (bridge_loc_data) and the boundaries of the state (state_gdf) do not quite align, i.e. it is obvious that bridge locations are outside of the boundaries.  
+
+print("CRS of state boundaries:", state_gdf.crs)
+print("CRS of internal coordinates:", geo_df.crs)
+
+
+# End plotting of the boundaries of the state procedure
+
+# Begin making a map plot of the bridges which have data in this set, i.e. NOT a plot of all the possible bridges in the state.  
+
+# create dataframe of the unique bridge STRUCNUM from the loc_data dataframe for the purposes of isolating the lat and long data for only the bridge data intended to be analyzed, i.e. the bridges that will be present in the data for each year- for this data set as it has been merged from the raw data this will amount to 7265 bridges/STUCNUM, while there are a total of 25318 bridges/STRUCNUM in the entire state of California.  
+
+# The dataframe created from this procedure will be called applicable_loc_data
+
+
+
+
+# I plan to use the CS1 and CS2  condition state data as the data I will investigate for now.  I feel it necessary to point this out because the functions I plan to use may tend to remove the rows of data from the dataframe when they are not applicable such as in the case of outliers or as I have been doing below removing 1s and zeros.  
 
 # And just as I say that it occurs to me that Perhaps pulling out each CS case and evaluating them individually may be a good idea, or rather to at least create the functions to do so- rather than just making additional dicts of dataframes that would have the CS2 thru CS4 data still inside the dataframe when that data will most likely have had rows pulled out that were not outliers or 1s or zeros thus having them removed would not aid in the well fitted-ness of the model, so I may go to a practice where a dict of dataframes is created that pulls out all of the unnecessary columns, and only the CS column being considered will be left in.  
 
-# How many zeros are there the condition state CS1 thru CS4 columns in each dataframe ?
+# How many zeros are there in the condition state CS1 thru CS4 columns in each dataframe ?
 
 def how_many_zeros(zeros_dict, col_names):
     zero_occurrences = {}
@@ -1680,17 +1995,6 @@ for key, counts in one_occurrences.items():
 # Is there a way to slice off one column and then copy another and attach it to the slice?
 # Slice the dataframes to allow the original data in the dataframe when first pulled from the element_dfs dictionary to stay the same except for the column sliced off - make the data from a single CS category into a numpy array and make the (03-30-2024, just noticed that I trailed off here and didn't finish the thought...)
 
-# What is the overall procedure to get the data from a single column (CS1 most likely) and split it off from the original dataframe inside the dict, most likely into another dict wherein the rest of the dataframes will be sliced off similarly-
-
-# Starting from the element_dfs dict, make the new dict of dfs for the CS1 column: element_dfs_CS1 
-
-# Then copy off the year column rather than slicing it off from the df inside the dict. So element_dfs_CS1 (+ year column)
-
-# Then remove any zeros and 1s as you may think necessary, do that by making it into a separate dict zeros_ones_CS1 (i.e. similar to element_dfs.copy()) after making the zeros_ones_CS1 dict make another copy of that and remove the outliers from it: zeros_ones_CS1_no_outls
-
-# Then take the "original" element_dfs_CS1 (pre remove 1s and zeros) and remove the outliers only: element_dfs_CS1_no_outls 
-
-# I think this is the extent of what I want to do pre regression. So  make the plots with the dicts of dataframes element_dfs_CS1 (which is the CS1 column sliced off from element_dfs with the CS1 column copied from the original)
 
 
 # First element_dfs_CS1
@@ -1702,42 +2006,10 @@ for key, counts in one_occurrences.items():
 
 # !!!
 # Move the import below later!
-from model1 import rem_cols_mk_df_model1
+# from model1 import rem_cols_mk_df_model1
 
 
-
-# Begin remove columns from element_dfs except for CS1
-
-# List of columns to be removed and saved in new, different DataFrames
-rem_cols = ['CS2', 'CS3', 'CS4'] # columns_to_remove
-
-# New dictionary to store DataFrames with removed column
-element_dfs_CS1 = {} # new_data with the CS2 3 and 4 columns removed.  
-
-# look thru the original dict of dataframes
-for df_keyname, df in element_dfs.items():  # df_name df data.items
-    # Create a new DataFrame with the removed columns
-    cs1_col_df = df.drop(columns=rem_cols) # new_df
-    
-    # Store the new DataFrames in the new dictionary
-    element_dfs_CS1[df_keyname] = cs1_col_df
-
-# Display the original dictionary of DataFrames
-print("Original DataFrames:")
-for df_keyname, df in element_dfs.items():
-    print(f"\n{df_keyname}:")
-    print(df)
-
-# Display the new dictionary of DataFrames with removed columns
-print("\nNew DataFrames:")
-for df_keyname, df in element_dfs_CS1.items():
-    print(f"\n{df_keyname}:")
-    print(df)
-
-# The original dictionary of DataFrames (element_dfs) remains unchanged.
-
-# End remove columns from element_dfs except for CS1
-
+# 08.25.24: make the single dataframe from the RC Abutments and then take that on out into a completed regression.  Get the distance to the coastline working too.  
 
 
 
@@ -1787,90 +2059,17 @@ boxplots_CS1(element_dfs_CS1)
 
 
 
-#def change_string(input_string:str) -> None:
-""" Notice that this functions doesn't return anything! """
- #   input_string += 'a'
-
-#def change_list(input_list:list) -> None:
-""" Notice that this functions doesn't return anything! """
- #   input_list.append('a')
-
-"""
-# New dictionary to store DataFrames with removed column
-element_dfs_CS1 = {} # new_data
-
-# Loop through the original dictionary of DataFrames
-for df_keyname, df in element_dfs.items():  # df_name df data.items
-    # Create a new DataFrame with the removed columns
-    cs1_col_df = df.drop(columns=rem_cols) # new_df
-    
-    # Store the new DataFrame in the new dictionary
-    element_dfs_CS1[df_keyname] = cs1_col_df
-
-"""
 
 
+# Do the observations that make the changes in the different CS_1-4 that are a result of an increase in the TOTALQTY from one year to the next and as such could mean the relevant bridge element is in a "better" or less severe condition state- i.e. if the percentage of the condition state known as CS_1 were to increase from one year to the next e.g. as a result of the bridge being widened for additional traffic- because the capacity of the bridge was increased- but NOT as a result of a repair to the bridge element as it had existed in prior years, BIG QUESTION: Should observations like that be omitted?  
 
+# How and why would the TOTALQTY increase from one year to the next? Mainly by way of a planned increase in the capacity of the bridge meant to increase the width of a bridge (additional lanes of traffic being added) or because certain elements needed to be added to maintain the bridge at its daily traffic levels as would have been originally planned- i.e. adding an extra pile or column with regard to elements that are assessed using units of each, or perhaps lengthening the abutment of a bridge due to mistakes in the design or construction of a bridge.  
 
+# It would be very noteworthy if a percentage of an element in one of the lower condition states such as CS_1, were to increase WITHOUT any increase in the overall TOTALQTY from one year to the next- as this would point to a repair or refurbishment of that element of that bridge.  
 
-# Begin removing 1s from the element_dfs_CS1 dictionary procedure
+# SO, SHOULD THOSE INCREASES BE OMITTED?
 
-def rmv_ones_for_CS1(original_dict, col_names):
-    mod_dict = {}  # holds the modified dataframes where rows holding values of 1 in the CS1 column are removed.
-
-    for key, dataframe in original_dict.items():
-        mod_df = dataframe.copy()  # copy of the original df to remove the 1s
-        
-        for col_name in col_names:
-            if col_name in mod_df.columns:
-                mask = mod_df[col_name] == 1
-                mod_df.drop(mod_df[mask].index, inplace=True)
-        
-        mod_dict[key] = mod_df  # Store the modified DataFrame in the new dictionary
-    
-    return mod_dict
-
-col_names = ['CS1']
-
-
-# element_dfs_CS1_1s represents the dictionary of dataframes with the ones removed from the CS1 column.  
-element_dfs_CS1_1s = rmv_ones_for_CS1(element_dfs_CS1, col_names)
-
-# element_dfs_CS1_1s for df abmt_rc_215 length post rmv_ones_for_CS1 is 19206 rows
-
-# End Remove rows with 1s (ones) from the dataframes based on the presence of 1s in CS1
-
-
-
-
-# I think the data will produce better results if the rows with zeros in  the CS1 column are removed as well.  
-
-# Begin Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
-
-def rmv_zeros_for_CS1(original_dict, col_names):
-    mod_dict = {}  # holds the modified dataframes with the rows holding zeros in CS1 column removed
-
-    for key, dataframe in original_dict.items():
-        mod_df = dataframe.copy() # copy of oringinal to remove the zeros from
-        
-        for col_name in col_names:
-            if col_name in mod_df.columns:
-                mask = mod_df[col_name] == 0
-                mod_df.drop(mod_df[mask].index, inplace=True)
-        
-        mod_dict[key] = mod_df  # Store the modified DataFrame in the new dictionary
-    
-    return mod_dict
-
-col_names = ['CS1']
-
-
-# element_dfs_CS1_0s represents the dictionary of dataframes with the zeros removed from the CS1 column.  
-element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
-
-# End Remove rows with zeros (0) from the dataframes based on the presence of zeros in CS1
-
-
+# LET'S AT LEAST TRY TO FIGURE HOW MANY TIMES THE TOTALQTY INCREASES FROM ONE YEAR TO THE NEXT AND HOW MANY TIMES A CONDITION STATE LIKE CS_1 INCREASES WITHOUT AN INCREASE IN TOTALQTY. 
 
 # !!!
 # Begin eliminate outliers procedure
@@ -1878,6 +2077,8 @@ element_dfs_CS1_0s = rmv_zeros_for_CS1(element_dfs_CS1, col_names)
 # !!!
 # Fixed below
 # 08/19/2023: The outliers procedure is not removing the rows from the dataframes- this needs to be either changed or addressed through data replacement 
+
+
 
 def elim_outliers(dict_of_dfs, column_name, z_threshold=2):
     dict_minus_outls = {}
@@ -2282,6 +2483,8 @@ def generate_plot(x, y):
 
 abmt_rc_215_no_outls = copy.deepcopy(top3_lrgst_dfs_in_dict_dicts['outls_rmvd_CS1']['abmt_rc_215'])
 
+# abmt_rc_215 is created in the context of making the dict of dicts from the brute forcefully entered el_names dict.  So to go back and make the columns other than CS1 matter to the regression analysis, will probably need to start by looking somewhere in that dictionary.  
+
 # 01.06.2024 Good to above.  
 
 data_type = abmt_rc_215_no_outls['date_time'].dtype
@@ -2367,9 +2570,114 @@ target_entry = "215"
 no_of_EN_215_per_orig_df = count_occurrences(dataframes, 'EN', '215')
 print(no_of_EN_215_per_orig_df)
 
+# Map of all the possible California Bridges:
+
+# Begin geopandas attempt
+
+def locate_mapping_files(shapefile_directory):
+    shp_file = None
+    shx_file = None
+    dbf_file = None
+    prj_file = None
+    
+    for root, dirs, files in os.walk(shapefile_directory):
+        for file in files:
+            if file.endswith(".shp"):
+                shp_file = os.path.join(root, file)
+            elif file.endswith(".shx"):
+                shx_file = os.path.join(root, file)
+            elif file.endswith(".dbf"):
+                dbf_file = os.path.join(root, file)
+            elif file.endswith(".prj"):
+                prj_file = os.path.join(root, file)
+
+    return shp_file, shx_file, dbf_file, prj_file
+
+    
 # !!!
 
-# Map of all the possible California Bridges:
+shapefile_directory = "./CA_boundaries/"
+shp_file, shx_file, dbf_file, prj_file = locate_mapping_files(shapefile_directory)
+
+if None in [shp_file, shx_file, dbf_file]:
+    print("One or more necessary files (.shp, .shx, .dbf) not found in the specified directory.")
+    exit()
+    
+geoDf = gpd.GeoDataFrame.from_file(shp_file, shx=shx_file, dbf=dbf_file)
+
+geoDf = geoDf.to_crs(epsg=4326)
+
+"""
+coordinates = [(x, y) for x in range(-125, -113, 1) for y in range(32, 43, 1)]
+
+# Plot the coordinates
+for coord in coordinates:
+    plt.text(coord[0], coord[1], f'({coord[0]}, {coord[1]})', fontsize=8, color='red')
+"""
+
+fig, ax = plt.subplots(figsize=(10, 8))
+geoDf.plot(ax=ax, facecolor='none', edgecolor='black')
+
+plt.scatter(loc_data['LONG'], loc_data['LAT'], color='red', marker='o', s=50, alpha=0.5)
+
+plt.title("Map of California (Wireframe)")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+print(geoDf.crs)
+
+# 07.14.2024: to line above will create the map with all the bridges of California shown in the plot- but I need to get the "merge" of the bridge STRUCNUM to a point where the only coordinates appearing on the map are the set created by the merge of the different years- and once the merge has been made the years are going to have the coordinates as a column in each of the different years- so the trick is I suppose to make the plot of the map show the different condition states on each individual coordinate- year by year- and then perhaps show a trend in the data based on the distance from the coast- also- make a list of coordinates that will account for the nearest distance from the coast to the bridge location.  From the distance between the coast and the coordinate, look for a trend in change of condition state based on distance from the coast.  Maybe plot all the different points for each year- over and over- then look for trends in the notes that eminate from each point, make the "bubble" appearance of the notes show the different (or same) CS's as time goes on.  
+
+# Basically I need to make the merge to get the different "excess" coordinates off the map, and then make the "trend" appear in the bubble/notes.  
+ 
+# Basemap attempt
+
+# Merge of abmt_rc_215_no_outls with loc_data dataframe to create a dataframe with LAT and LONG becoming part of the abmt_rc_215_no_outls dataframe after the merge- i.e. making only the rows of data from the abmt_rc_215_no_outls df that have a matching STRUCNUM in the loc_data df merge the cooordinates into the "new" dataframe.  
+
+# Merge of the abmt_rc_215_no_outls with the loc_data, left merge so the data 
+
+
+
+
+from mpl_toolkits.basemap import Basemap
+
+# Cartopy attempt
+
+
+
+
+state_shapefile = "./CA_boundaries/ca_state_boundaries.shp"
+
+state_gdf = gpd.read_file(state_shapefile)
+
+# Create a GeoAxes with a specified projection
+fig, ax = plt.subplots(figsize=(10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+
+# Add layers to the plot
+ax.add_geometries(state_gdf['geometry'], crs=ccrs.PlateCarree(), edgecolor='black', facecolor='none')  # Plot state boundary
+ax.coastlines()  # Add coastlines
+ax.add_feature(cartopy.feature.BORDERS, linestyle='-', linewidth=0.5, edgecolor='gray')  # Add country borders
+
+# Plot the coordinates on the map
+ax.scatter(coordinates_df['LONG'], coordinates_df['LAT'], color='red', marker='o', transform=ccrs.PlateCarree(), zorder=10)
+
+# Customize plot
+ax.set_title("Map of California with Coordinates")
+ax.set_xlabel("Longitude")
+ax.set_ylabel("Latitude")
+
+# Show plot
+plt.show()
+
+
+
+
+
+fig, ax = plt.subplots(figsize=(10, 8))
+state_gdf.plot(ax=ax, color='lightblue', edgecolor='black')
+
+    
 
 # Begin plotly attempt
 

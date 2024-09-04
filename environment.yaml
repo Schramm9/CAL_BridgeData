@@ -1,0 +1,19 @@
+name: bridgeEnv
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - matplotlib
+  - statsmodels
+  - geopandas
+  - scikit-learn
+  - plotly
+  - scipy
+  - numpy
+  - pandas
+  - seaborn
+  - pip
+  - pip:
+    - glob2
+    - pmdarima
