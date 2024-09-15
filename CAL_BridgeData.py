@@ -75,6 +75,11 @@ from shapely.geometry import Point
 import json
 import plotly.graph_objects as go
 
+from pyproj import Transformer
+
+import cartopy.crs as ccrs
+
+
 #import folium
 
 
@@ -139,7 +144,7 @@ print(files)
 
 # Split filename at the underscore (_) creates a year with the state abbreviation after- at least in the case of the files for the state of California.  
 
-# Then follow on by adding df to the front of the string to act as variables names for the different DataFrames.
+# Then follow on by adding df to the front of the string to act as variables names for the different DataFrames.  The 'df' on the front of the var name is just to say its a list of what dataframes will be called.  
 
 df_names = ["df" + i.split('_', 1)[0] for i in files]
 
@@ -196,6 +201,7 @@ for df in dataframes:
     print(df.dtypes)
     print()
 
+# End parsing of dataframes recursively
 
 
 # Begin data type conversion
@@ -214,8 +220,7 @@ desired_data_types = {
 }
 
 
-
-# Iterate over the dataframes
+# Iterate over the dataframes 
 
 # !!!
 # df
@@ -231,19 +236,21 @@ for df in dataframes:
 
 # !!!
 
-
+# Begin Create the dictionary that holds each set of data for each year being considered.
 # !!!  
- 
+
 # df_nameToDF is the dictionary of dataframes as created when the df_names are matched up with the data corresponding to the xml file from which the data is read at parse.  
- 
+
 df_nameToDF = {df_names[x]:dataframes[x]for x in range(len(df_names))}
 
-# creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  In this case for the state of California the keys will take the form df2016CA, df2017CA, ... df2022CA.  
+# creates the dictionary of keys in the form of the df_names list and the values in the form of the dataframes list.  In this case for the state of California the keys will have a nomenclature of df2016CA, df2017CA, ... df2022CA.  
+
+# End Create the dictionary that holds each set of data for each year being considered.
 
 
 # bridge_counts_un means number of unique bridges or STRUCNUM in each df, performing this action to get a sense of the number of unique bridges in each data set.  
 
-
+# Begin determination of number of unique bridges
 # !!!
 # df
 bridge_counts_un = {k: df.groupby('STRUCNUM') for k, df in df_nameToDF.items()}
@@ -284,6 +291,8 @@ df2023CA.groupby('STRUCNUM').count()
 for k, v in df_nameToDF.items():
     vars()[k] = v  
 
+# Separates the Keys in the df_nameToDF dictionary from the values of that same dictionary
+
 # End df_nameToDF procedure
 
 
@@ -295,9 +304,11 @@ for k, v in df_nameToDF.items():
 
 # Inside the bridge_array_dict b_16 thru b_23 just mean "bridge number" aka STRUCNUM for the corresponding years- 2016 thru 2023, making a key that holds the list of STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_16 - b_23 variables will be larger in size (i.e. no. of rows) than the dataframes as will be seen below once the STRUCNUM not present in all years are removed.  
 
-# Copy and then modify the existing dictionary using the existing keys to create new keys and copy the STRUCNUM column of the dataframe to the new dict and convert it to a numpy array.  
+# Begin Copy and then modify the existing dictionary to make dictionary key in the form of b_XX with XX representing the 2 digit year (i.e. 16, 17, ...) using the existing keys to create new keys and copy the STRUCNUM column of the dataframe to the new dict and convert it to a numpy array.  
 
 bridge_arr_dict = {'b_' + key[4:]: df['STRUCNUM'].to_numpy() for key, df in df_nameToDF.items()}
+
+# End Copy and then modify the existing dictionary 
 
 
 
@@ -336,28 +347,9 @@ df2023CA
 # Here
 # !!!
 
-# the dfs were creating more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well *** I still need to explain to myself why this is necessary in order to avoid multiple entries of the same element for a single bridge.  
+# the dfs possessed more entries than were present originally due to additional entries created when EN = EPN that also had entries for CS1-CS4 data as well   
 
-""" the ...EPN.isnull() expressions below are required to merge the data properly while avoiding multiple entries of the same EN for each bridge  """
 
-"""
-column_name = 'EN'
-
-dataframes = [df.dropna(subset=[column_name]) for df in dataframes]
-"""
-
-"""
-null_checks = [df[column_name].isnull() for df in dataframes]
-
-print(null_checks[0])  # Null checks for Year 2016 STRUCNUM
-print(null_checks[1])  # Null checks for Year 2017 STRUCNUM
-print(null_checks[2])  # Null checks for Year 2018 STRUCNUM
-print(null_checks[3])  # Null checks for Year 2019 STRUCNUM
-print(null_checks[4])  # Null checks for Year 2020 STRUCNUM
-print(null_checks[5])  # Null checks for Year 2021 STRUCNUM
-print(null_checks[6])  # Null checks for Year 2022 STRUCNUM
-print(null_checks[7])  # Null checks for Year 2023 STRUCNUM
-"""
 
 # Come up with the max number of bridges that are common to all years (first merge??)
 # Come up with the highest total number of possible EN for all STRUCNUM?
@@ -366,15 +358,17 @@ print(null_checks[7])  # Null checks for Year 2023 STRUCNUM
 
 # If I refer to "MVP II" and then comment out some code in that area I am referring to a functionality I have not achieved in this program and I would hope to make possible in a second version of this application were it to be updated.  
     
-# MVP II: Apply isnull() method to the EPN column of the dataframes while the dataframes are still in a list or dictionary and before any other changes are made to the list, rather than applying isnull() as I do below to each dataframe hard-coded manually.
 
 
-filtered_df_nameToDF = {df_name: df[df['EPN'].isnull()] for df_name, df in df_nameToDF.items()}
+
+nulls_rmvd_df_nameToDF = {df_name: df[df['EPN'].isnull()] for df_name, df in df_nameToDF.items()}
+
+# End null checks/removals
+
 
 # change column suffixes to avoid confusion when merging at a later time in the program.  
 
-
-# change dataframe columns by adding suffix to avoid MergeErrors in future versions and to enhance readability.
+# Begin change dataframe columns by adding suffix to avoid MergeErrors in future versions and to enhance readability.
 
 # df2016CA [index:length] (index starts at zero, length starts at 1) so index = 2 means '2' then length of 6 means 6 in this case, so 2016.
 
@@ -387,12 +381,13 @@ def add_suffix_to_col_hdr(dict_of_dfs, cols_to_exclude = None):
         df.columns = [col + '_' + suffix if col not in cols_to_exclude else col for col in df.columns]
 
 # Call the function to add suffixes to columns
-add_suffix_to_col_hdr(filtered_df_nameToDF, cols_to_exclude = ['STRUCNUM', 'EN'])
+add_suffix_to_col_hdr(nulls_rmvd_df_nameToDF, cols_to_exclude = ['STRUCNUM', 'EN'])
 
 # Print modified dataframes
-for key, df in filtered_df_nameToDF.items():
+for key, df in nulls_rmvd_df_nameToDF.items():
     print(f"{key}:\n{df}")
 
+# End change dataframe columns by adding suffix
 
 # 12.24.2023 revisions good to above.
 #!!!
@@ -438,12 +433,12 @@ strucnum_in_all = sorted(strucnum_in_all)
 
 # BEGIN Remove STRUCNUM not present in all dfs
 
-for df_name, df in filtered_df_nameToDF.items():
+for df_name, df in nulls_rmvd_df_nameToDF.items():
     mask = df['STRUCNUM'].isin(strucnum_in_all)
     
     df_filtered = df[mask]
    
-    filtered_df_nameToDF[df_name] = df_filtered
+    nulls_rmvd_df_nameToDF[df_name] = df_filtered
     
 # END Remove STRUCNUM not present in all dfs
     
@@ -481,44 +476,22 @@ df2023CA = df2023CA[np.isin(df2023CA['STRUCNUM'].to_numpy(), strucnum_in_all)]
 """
 
 # Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2016_mod, strucnum_2017_mod, etc.
-# !!!
-# Here
-# !!!
 
-# df_names = ["df" + i.split('_', 1)[0] for i in files]
-
-
-strucnum_mod = {'strucnum_' + key[2:] + '_mod': df['STRUCNUM'].unique() for key, df in filtered_df_nameToDF.items()}
-
-"""
-strucnum_2016_mod = df2016CA['STRUCNUM'].unique()
-
-strucnum_2017_mod = df2017CA['STRUCNUM'].unique()
-
-strucnum_2018_mod = df2018CA['STRUCNUM'].unique()
-
-strucnum_2019_mod = df2019CA['STRUCNUM'].unique()
-
-strucnum_2020_mod = df2020CA['STRUCNUM'].unique()
-
-strucnum_2021_mod = df2021CA['STRUCNUM'].unique()
-
-strucnum_2022_mod = df2022CA['STRUCNUM'].unique()
-
-strucnum_2023_mod = df2023CA['STRUCNUM'].unique()
-"""
-
-
-# strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod = strucnum_2021_mod = strucnum_2022_mod
-
+strucnum_mod = {'strucnum_' + key[2:] + '_mod': df['STRUCNUM'].unique() for key, df in nulls_rmvd_df_nameToDF.items()}
 
     
 from array import *
     
+# Check that each strucnum_20XX_mod equals all the others, i.e. if the set of STRUCNUM common to all the dataframes created from all the years being observed equal each other.  
 # make lists of each set of strucnum to compare them.
     
 strucnum_mod = [[value] for value in strucnum_mod.values()]
-    
+
+# And they all equal each other:
+# strucnum_2017_mod = strucnum_2018_mod = strucnum_2019_mod = strucnum_2021_mod = strucnum_2020_mod = strucnum_2021_mod = strucnum_2022_mod
+
+
+
 """
 strucnum_2016_mod.tolist()
 
@@ -551,7 +524,7 @@ if collections.Counter(strucnum_2022_mod) == collections.Counter(strucnum_2021_m
 #!!!
 # 12-14-2023!!!
     
-# BEGIN check content of the arrays of different years for  bridges (strucnum) in each year procedure.  
+# BEGIN check content of the arrays of different years for bridges (strucnum) in each year procedure.  
 # Specifically, check the STRUCNUM in each array match each other - checking that the sets of bridges being separated out from the raw data for each year are the same.
     
 def check_array_content(*arrays):
@@ -574,19 +547,15 @@ def check_array_content(*arrays):
     else:
         print("Arrays are not equal.")
     
+check_array_content(strucnum_mod)
+
 # END check content of the arrays of different bridges (strucnum) in each year procedure.  
-    
-# lists associated with df2022CA and df2021CA are identical.
+
     
 # !!!
 # qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()} ... Make the STRUCNUM of the list strucnum_in_all into individual variables (there will be 8847 of them I assume) using the code at the beginning of this line as a guide to come up with a variable that will have the nomenclature eN_in_sTrucnum_000000000000004 (the one shown here would be a variable for STRUCNUM = 000000000000004 without anything attached to it denoting the year assessed) as a means of storing the all EN associated with that STRUCNUM for each year so there will be 8847*5 = 44235 total of those variables 
     
-    
-    
 # I think I need to scrap all of that and just find a method that will make the set of bridges that can merge on STRUCNUM and EN obvious and therefore not be forced to come up with a means of removing individual or multiple excess lines of data from each year's individual df after coming up with a list of common EN per STRUCNUM across all years being assessed!!!!
-    
-    
-    
     
 # !!!
     
@@ -637,12 +606,11 @@ def check_array_content(*arrays):
     
     
 # MVPII: Make a dict of the df2016 thru df2022 dfs and just somehow say "merge all the dataframes in this dictionary...?  Possible?
-    
-    
-    
+
+
 # BEGIN Merge different dataframe years procedure - make the merge and possibly the creation of the df_all_yrs_merged variable merged dataframe,  and perhaps make the function doing the merge can start by first merging the largest df be merged with the next largest, the result of the first merge then being merged to the next largest remaining df, and so on iteratively until all dfs have been merged, the goal being to make the resulting df contain the largest possible number of bridges common among the group of dfs being merged.  
- 
-   
+
+
 # Creates df_all_yrs_merged variable:
 
 def merge_dataframes_by_length(dict_of_dfs, common_columns):
@@ -663,23 +631,33 @@ def merge_dataframes_by_length(dict_of_dfs, common_columns):
 
 
 common_columns = ['STRUCNUM', 'EN']  # Specify the common columns
-df_all_yrs_merged = merge_dataframes_by_length(filtered_df_nameToDF, common_columns)
+df_all_yrs_merged = merge_dataframes_by_length(nulls_rmvd_df_nameToDF, common_columns)
 print(df_all_yrs_merged)
 
-# 01-29-2024 Make the additions/changes to the merge here- use the function above, call it again, create a new variable NOT called df_all_yrs_merged and call the function on the same dict of dataframes (filtered_df_nameToDF) but only call it on the single column STRUCNUM this time.  Then have the function call again and create the new dict of dataframes (with the aforementioned new variable name) and then filter all the different parts as was done previously- and make the new dict of dataframes the same as before, but with the extra bridge elements that will result, and the wherewithal to filter all the different EN's out, a larger set of data will result, then use this later to compare or make the difference of entries into a different variable and use to add to the dfs as needed to make the frequency between the observations into even numbers of hours or minutes without any digits to the right of the decimal to better run the ARIMA model.
+# END Merge different dataframe years procedure 
+
+# 01-29-2024 Make the additions/changes to the merge here- use the function above, call it again, create a new variable NOT called df_all_yrs_merged and call the function on the same dict of dataframes (nulls_rmvd_df_nameToDF) but only call it on the single column STRUCNUM this time.  Then have the function call again and create the new dict of dataframes (with the aforementioned new variable name) and then filter all the different parts as was done previously- and make the new dict of dataframes the same as before, but with the extra bridge elements that will result, and the wherewithal to filter all the different EN's out, a larger set of data will result, then use this later to compare or make the difference of entries into a different variable and use to add to the dfs as needed to make the frequency between the observations into even numbers of hours or minutes without any digits to the right of the decimal to better run the ARIMA model.  *** Probably not going to do this ***
 
 
-# Begin getting lat and long coordinates procedure:
+# Begin getting lat and long coordinates, and other possible independent variables to be used later procedure:
+
 
 xlsx_path = 'CA15.xlsx'
 
 # Read only the STRUCNUM 'Latitude' and 'Longitude' columns from the Excel file into a pandas DataFrame
 
+"""
 loc_data = pd.read_excel(xlsx_path, usecols=['STRUCTURE_NUMBER_008', 'LAT_016', 'LONG_017'])
+"""
+
+
+loc_data = pd.read_excel(xlsx_path, usecols=['STRUCTURE_NUMBER_008', 'LAT_016', 'LONG_017', 'YEAR_BUILT_027', 'ADT_029', 'YEAR_ADT_030', 'SUBSTRUCTURE_COND_060', 'OPR_RATING_METH_063', 'OPERATING_RATING_064', 'INV_RATING_METH_065', 'INVENTORY_RATING_066', 'STRUCTURAL_EVAL_067', 'WORK_PROPOSED_075A', 'WORK_DONE_BY_075B', 'DATE_OF_INSPECT_090', 'INSPECT_FREQ_MONTHS_091', 'YEAR_RECONSTRUCTED_106', 'PERCENT_ADT_TRUCK_109', 'YEAR_OF_FUTURE_ADT_115', 'DATE_LAST_UPDATE', 'TYPE_LAST_UPDATE', 'SUFFICIENCY_RATING'])
+
 
 print(loc_data.dtypes)
 
-# Need to make the latitude and longitude data useable, i.e. there are no decimals in the coordinates as they are given in the download from the FHWA.  
+# Need to make the latitude and longitude data useable, i.e. there are no decimals in the coordinates as they are given in the download from the FHWA.
+  
 loc_data['LAT_016'] = loc_data['LAT_016'].astype(str)
 # Place the decimal to the right of the second digit in the latitude column:
 loc_data['LAT_016'] = loc_data['LAT_016'].apply(lambda x: x[:2] + '.' + x[2:])
@@ -697,11 +675,40 @@ loc_data['LAT_016'] = pd.to_numeric(loc_data['LAT_016'], errors='coerce')
 
 loc_data['LONG_017'] = loc_data['LONG_017'] * -1
 
+# !!!
 # rename columns prior to merge of data into df_all_yrs_merged STRUCTURE_NUMBER_008 LAT_016 LONG_017 
 
-cols_loc_data = {'STRUCTURE_NUMBER_008': 'STRUCNUM', 'LAT_016': 'LAT', 'LONG_017': 'LONG'}
+"""
+YEAR_BUILT_027 *** Have to use this one ***
+ADT_029 (Average Daily Traffic)
+YEAR_ADT_030
+SUBSTRUCTURE_COND_060
+
+OPR_RATING_METH_063
+OPERATING_RATING_064
+INV_RATING_METH_065
+INVENTORY_RATING_066
+STRUCTURAL_EVAL_067
+WORK_PROPOSED_075A
+WORK_DONE_BY_075B
+WORK_PROPOSED_075A
+WORK_DONE_BY_075B
+DATE_OF_INSPECT_090
+INSPECT_FREQ_MONTHS_091
+YEAR_RECONSTRUCTED_106
+PERCENT_ADT_TRUCK_109
+YEAR_OF_FUTURE_ADT_115
+DATE_LAST_UPDATE
+TYPE_LAST_UPDATE
+SUFFICIENCY_RATING
+"""
+
+
+cols_loc_data = {'STRUCTURE_NUMBER_008': 'STRUCNUM', 'LAT_016': 'LAT', 'LONG_017': 'LONG', 'YEAR_BUILT_027': 'YEAR_BUILT', 'ADT_029': 'ADT', 'YEAR_ADT_030': 'YEAR_ADT', 'SUBSTRUCTURE_COND_060': 'SUBSTRUCTURE_COND', 'OPR_RATING_METH_063': 'OPR_RATING_METH', 'OPERATING_RATING_064': 'OPERATING_RATING', 'INV_RATING_METH_065': 'INV_RATING_METH', 'INVENTORY_RATING_066': 'INVENTORY_RATING', 'STRUCTURAL_EVAL_067': 'STRUCTURAL_EVAL', 'WORK_PROPOSED_075A': 'WORK_PROPOSED', 'WORK_DONE_BY_075B': 'WORK_DONE_BY', 'DATE_OF_INSPECT_090': 'DATE_OF_INSPECT', 'INSPECT_FREQ_MONTHS_091': 'INSPECT_FREQ_MONTHS', 'YEAR_RECONSTRUCTED_106': 'YEAR_RECONSTRUCTED', 'PERCENT_ADT_TRUCK_109': 'PERCENT_ADT_TRUCK', 'YEAR_OF_FUTURE_ADT_115': 'YEAR_OF_FUTURE_ADT', 'DATE_LAST_UPDATE': 'DATE_LAST_UPDATE', 'TYPE_LAST_UPDATE': 'TYPE_LAST_UPDATE', 'SUFFICIENCY_RATING': 'SUFFICIENCY_RATING'}
 
 loc_data.rename(columns=cols_loc_data, inplace=True)
+
+# !!!
 
 # Check of data types
 print(loc_data.dtypes)
@@ -722,9 +729,10 @@ loc_data = loc_data[cols_list]
 """
 df16_17_18_19_20_21_22_23 = pd.merge(df2023CA, df2022CA, on=['STRUCNUM','EN'], suffixes=('_23', '_22')).merge(df2021CA, on=('STRUCNUM','EN'), suffixes=('_22', '_21')).merge(df2020CA, on=('STRUCNUM','EN'), suffixes=('_21', '_20')).merge(df2019CA, on=('STRUCNUM','EN'), suffixes=('_20', '_19')).merge(df2018CA, on=('STRUCNUM','EN'), suffixes=('_19', '_18')).merge(df2017CA, on=('STRUCNUM','EN'), suffixes=('_18', '_17')).merge(df2016CA, on=('STRUCNUM','EN'), suffixes=('_17', '_16'))
 """
-    
+
+# !!!
 # END Merge different dataframe years procedure
-    
+# !!!
     
 
 # MVP II: Merge on only STRUCNUM - get a larger dataset and use Python to replace missing data.  Was having difficulty with the size of the dataset when merging only on STRUCNUM.  
@@ -804,11 +812,11 @@ df16_17_18_19_20_22_21 = pd.merge(df2016CA, df17_18_19_20_22_21, on=['STRUCNUM',
     
 df16_17_18_19_20_22_21.rename(columns={'FHWAED':'FHWAED_16', 'STATE':'STATE_16', 'EPN': 'EPN_16', 'TOTALQTY':'TOTALQTY_16', 'CS1':'CS1_16', 'CS2':'CS2_16', 'CS3':'CS3_16', 'CS4':'CS4_16','filename':'filename_16'}, inplace = True)
 """
-    
-    
-    
+
+
+
 # Find out what happens to the EN column when the slices are made!! (06/15/2023)
-    
+
 # Original df16_17_18_19_20_22_21 length = 46204 lines long
 # Use the expression below as a starting point for 11/27/2022
 #abmt_rc = abmt_rc.loc[~((abmt_rc['CS2'] == 0.0) & (abmt_rc['CS1'] + abmt_rc['CS3'] + abmt_rc['CS4'] == 1.0)),:] 
@@ -943,8 +951,10 @@ df21 = df16_17_18_19_20_22_21.iloc[:,[56,3,4,60,61,62,63,64]]
     
     
 # Begin dataframe slicing of non-common columns procedure
+# !!!
+# What does this line below do?
 df_all_yrs_merged
-
+# !!!
 
 # 12.31.2023 stopped here for the night
     
@@ -980,7 +990,7 @@ if __name__ == "__main__":
 
 # End remove all suffixes (i.e. the "_" and anything to the right of it) from all dataframe headings in dictionary
 
-
+# 09.04.24 stopped for the night
 
 # Sort the dictionary keys numerically
 sorted_keys = sorted(sliced_dfs.keys())
@@ -1664,7 +1674,7 @@ add_key_desc(element_dfs, el_names)
 # Mk 5-21-24
 
 # 08.23.24
-# Going to make a decision about how to proceed with this project: I am going to start analyzing the CS_2 data from the sets.  I expect it to have a more noticeable trend as time goes by and to be the most consequential of the data.  I do not expect the CS_1 data to have much in the way of a trend because it is the beginning state of all the different elements in the bridges.  
+# Going to make a decision about how to proceed with this project: I am going to start analyzing the CS_2 data from the sets.  I expect it to have a more noticeable trend as time goes by and to be the most consequential of the data.  I do not expect the CS_1 data to have much in the way of a trend because it is the beginning state of all the different bridge elements.  
 # The other decision I'm going to make at this time (08.23.24) is to only perform an analysis on the Reinforced Concrete Abutments of the bridges.  This element represents the largest set of elements in the State of California, much as it would in any dataset of highway bridges- all bridges need abutments, as these are the foundation of the bridge where it starts and ends- and in many civil and structural engineering tasks the foundation is always one of the most critical elements. And even if there are no interior supports for the span of a  bridge, the bridge will have abutments at each end of its span.   
 
 
@@ -1678,22 +1688,32 @@ add_key_desc(element_dfs, el_names)
 bridge_loc_data = loc_data[loc_data['STRUCNUM'].isin(unique_strucnum_df_data)]
 
 
-# Load the boundary file, this creates the GeoDataFrame for the boundaries of the applicable state, variable name is gdf_bound (Geo Data Frame boundaries).  
-gdf_bound = gpd.read_file('CA_boundaries/ca_state_boundaries.shp')
 
+
+
+
+
+# Load the boundary file, this creates the GeoDataFrame for the boundaries of the applicable state, variable name is gdf_bound (Geo Data Frame boundaries).  
+gdf_bound = gpd.read_file('CA_counties/County_Boundaries.shp')
+
+gdf_Nation_bound = gpd.read_file('US_boundaries/cb_2022_us_nation_20m.shp')
 
 print("State Boundaries GeoDataFrame CRS:", gdf_bound.crs)
-# Above line of code gives CRS of EPSG:3857
+# Above line of code gives CRS of EPSG:3857 HOWEVER, recall that this code only READS the label of the CRS within the .shp file, so it can be incorrect (and in this case it is)
+
+print("National Boundaries GeoDataFrame CRS:", gdf_Nation_bound.crs)
+# Above line of code gives CRS of EPSG:4269
+
 
 # however the statement below points to the format of the CRS of the data being in EPSG:4326 already, and the CRS in the data as it was retreived being mislabeled.  
 print(gdf_bound.total_bounds)
 # The above results in the following output: [-124.482003   32.529508 -114.131211   42.009503]
 
-# Using the 'set_crs' method can change the label in the set of boundary data:
+# Using the 'set_crs' method can change the label in the set of boundary data- it does not perform any transformation of the data:
 
 # Set the CRS to EPSG:4326 but do not perform any transformation of the data.
 gdf_bound.set_crs(epsg=4326, inplace=True, allow_override=True)
-
+# !!! Reason for the actions taken above:
 # CRS of the boundaries of the state are in degrees- but CRS is given as EPSG:3857- for degrees the CRS should be EPSG:4326.  
 
 print(gdf_bound.crs)  # Should be EPSG:4326
@@ -1706,19 +1726,49 @@ if gdf_bound.crs != 'EPSG:4326':
 # Find out the headers of the boundaries dataframe:
 print("State Boundaries GeoDataFrame columns:", gdf_bound.columns)
 
+# Find out the headers of the National boundaries dataframe:
+print("National Boundaries GeoDataFrame columns:", gdf_Nation_bound.columns)
 
-# give the state a name, the column holding the name of the state is just called 'NAME'
 
+
+# give the state a name, the column holding the name of the state is just called 'NAME'- you have to check the names of the column headings in the .shp file:
+
+# Unfortunate hard coded name
 name_of_state = 'California'
-state_gdf = gdf_bound[gdf_bound['NAME'] == name_of_state]
+state_gdf = gdf_bound[gdf_bound['NAME10'] == name_of_state]
+
+# same for the Nation:
+# Unfortunate hard coded name of the Nation as well
+name_of_Nation = 'United States'
+nation_gdf = gdf_Nation_bound[gdf_Nation_bound['NAME'] == name_of_Nation]
+
+
 
 # check that CRS is still the same for the new variable, state_gdf:
 print("state_gdf CRS:", state_gdf.crs)
+print("nation_gdf CRS:", nation_gdf.crs)
 
 
-# from the above checks of the data, the values of the boundaries are set is degrees, as is customary of EPSG:4326 (WGS84) and NOT like would be expected for EPSG:3857 (Web Mercator)
 
-# Make a GeoDataFrame of the applicable coordinates of the bridge locations  within the state boundaries:
+# from the above checks of the data, the values of the state boundaries are set in degrees, as is customary of EPSG:4326 (WGS84) and NOT like would be expected for EPSG:3857 (Web Mercator), and the nation_gdf is in a different CRS that uses a slightly different reference datum
+
+
+
+# Transform from EPSG:4269 to EPSG:4326
+transformer = Transformer.from_crs("EPSG:4269", "EPSG:4326")
+
+# Reproject the gdf_Nation_bound to the new CRS, and save the boundaries to a new variable:
+
+gdf_Nation_bound_trnsfrmd = gdf_Nation_bound.to_crs(epsg=4326)
+
+gdf_Nation_bound_trnsfrmd.to_file('US_boundaries/gdf_Nation_bound_trnsfrmd.shp')
+
+print("New CRS of gdf_Nation_bound_trnsfrmd:",  gdf_Nation_bound_trnsfrmd.crs)
+
+
+
+
+# Make a GeoDataFrame of the applicable coordinates of the bridge locations  within the state and/or National boundaries:
 
 # Check the headers of the bridge_loc_data dataframe:
 print("Bridge Location Data:", bridge_loc_data.columns)
@@ -1766,16 +1816,29 @@ bdg_coords_df.plot(ax=ax, color='blue', marker='o', markersize=50)
 plt.show()
 """
 
+print(nation_gdf.total_bounds)
+
 print(state_gdf.total_bounds)
 
 # Ensure both GeoDataFrames are using the same CRS
 bdg_coords_df = bdg_coords_df.to_crs(state_gdf.crs)
 
+# Make a plot of the map
+
 fig, ax = plt.subplots(figsize=(10, 10))
 
-# Optional: Set limits to focus on the area of interest
+ax.grid(False)  # Turn off grid lines
+ax.set_xticks([])  # Remove x-axis ticks
+ax.set_yticks([])  # Remove y-axis ticks
+
+"""
+# Set limits to focus on the area of interest
 ax.set_xlim(state_gdf.total_bounds[0], state_gdf.total_bounds[2])  # Set x-limits to state's bounds
 ax.set_ylim(state_gdf.total_bounds[1], state_gdf.total_bounds[3])  # Set y-limits to state's bounds
+"""
+
+# National Boundaries
+nation_gdf.plot(ax=ax, edgecolor='grey', facecolor='none')
 
 
 # Plot the boundaries of the state
@@ -1784,14 +1847,27 @@ state_gdf.plot(ax=ax, edgecolor='black', facecolor='grey')
 # Plot the LAT and LONG of the applicable bridges
 bdg_coords_df.plot(ax=ax, color='red', marker='o', markersize=100)
 
-#ax.set_aspect('equal')
+ax.set_aspect('equal')
 
 # Additional plot settings
 plt.title(f'Boundaries of {name_of_state} w/ applicable bridge location LAT & LONG')
 plt.xlabel('Longitude')
 plt.ylabel('Latitude')
 
+ax.set_xlim([-125, -110])
+ax.set_ylim([30, 45])   
+
 plt.show()
+
+plt.savefig('Cal_US.png', dpi=300)
+
+
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.coastlines()
+plt.show()
+
+
+print(os.getcwd())
 
 # Check for coordinates outside of the boundaries:
 minx, miny, maxx, maxy = state_gdf.total_bounds
@@ -1861,7 +1937,7 @@ plt.xlabel('Longitude')
 plt.ylabel('Latitude')
 plt.show()
 
-
+# 09.09.2024 Mk - good to above.  
 
 
 """
